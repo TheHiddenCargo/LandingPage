@@ -1,10 +1,22 @@
-import React from "react";
+import React, {useState} from "react";
 import "./Landing.css";
-import entrarImage from "../../assets/Entrar.png"; 
+import Modal, {ModalBody} from "../Modal.tsx";
+
+
 import logoImage from "../../assets/logo.png"; // Imagen del logo
 
+
 const Landing = () => {
-  return (
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleOpenModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
+    return (
     <div className="landing-container">
       <div className="left-section">
         <img src={logoImage} alt="Logo de la Empresa" className="logo" />
@@ -13,10 +25,25 @@ const Landing = () => {
         </p>
       </div>
       <div className="right-section">
-        <a href="https://entra.microsoft.com/" target="_blank" rel="noopener noreferrer">
-          <img src={entrarImage} alt="Entrar" className="entrar-btn" />
-        </a>
+          <div className="menu">
+              <button className="game" onClick={handleOpenModal}>¿COMO JUGAR?</button>
+              <button className="game" onClick={() => {window.location.href = "https://entra.microsoft.com";}}>
+                  INICIAR
+              </button>
+          </div>
+
+        
       </div>
+        <Modal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            title="¿Como Jugar?"
+        >
+            <ModalBody
+                bodyTitle="Como Jugar"
+                videoUrl="https://www.youtube.com/shorts/upeHfLQTMYU"
+            />
+        </Modal>
     </div>
   );
 };

@@ -1,0 +1,199 @@
+/*Reseteo*/
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+    display: block;
+}
+
+body {
+    line-height: 1;
+}
+
+ol,
+ul {
+    list-style: none;
+}
+
+blockquote,
+q {
+    quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+
+    content: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+div {
+    overflow: hidden;
+}
+
+/*Mobile First*/
+
+:root{
+    --marginElements: 10px;
+    --sizeh1: 20px;
+    --colorFont: #F5EFD7;
+    --fontWeightButton: 400;
+    --fontStyleButton: normal;
+}
+
+h1{
+    font-size: var(--sizeh1);
+}
+
+iframe{
+    border-radius: 5px;
+    max-width: 80%;
+}
+
+div.modal{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+div.modal div{
+    width: fit-content;
+    justify-content: flex-start;
+
+}
+
+div.titulo{
+    display: flex;
+    margin-bottom: var(--marginElements);
+}
+
+div.titulo button{
+    order: -1;
+    margin-right: var(--marginElements);
+}
+div.titulo h1{
+    order: 1;
+    color: var(--colorFont);
+}
+
+/*Computador*/
+
+@media (min-width: 700px) {
+   :root{
+       --sizeh1: 24px;
+   }
+}
