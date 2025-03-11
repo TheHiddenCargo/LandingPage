@@ -7,7 +7,7 @@ import { PublicClientApplication } from "@azure/msal-browser";
 import { msalConfig } from "./authConfig";
 import App from "./App";
 
-// Si estamos en test, usa un objeto dummy para msalInstance.
+// Si estamos en test, usa un objeto dummy
 export const msalInstance =
   process.env.NODE_ENV === "test"
     ? { loginPopup: () => Promise.resolve({ account: {} }) }
@@ -26,7 +26,6 @@ export function renderApp() {
   );
 }
 
-// Solo renderiza la app si no estamos en entorno de test.
 if (process.env.NODE_ENV !== "test") {
   renderApp();
 }
