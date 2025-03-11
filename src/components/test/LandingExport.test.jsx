@@ -2,7 +2,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import '@testing-library/jest-dom';
-import LandingExport from "./Landing.jsx"; // Ajusta la ruta según tu estructura
+import LandingExport from "../LandingPage/Landing.jsx"; // Ajusta la ruta según tu estructura
 import { MemoryRouter } from "react-router-dom";
 
 // Mock simple de MSAL para evitar pruebas de su funcionalidad
