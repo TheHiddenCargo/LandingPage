@@ -44,13 +44,17 @@
     "webpack-cli": "^6.0.1"
   },
   "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}",
-      "!src/**/*.{test,spec}.{js,jsx}",
-      "!src/**/__tests__/**"
-    ],
-    "coveragePathIgnorePatterns": [
-    ],
-    "coverageReporters": ["json", "lcov", "text", "clover"]
-  }
+  "collectCoverageFrom": [
+    "src/**/*.{js,jsx}",
+    "!src/**/*.{test,spec}.{js,jsx}",
+    "!src/**/__tests__/**"
+  ],
+  "coveragePathIgnorePatterns": [
+    "/node_modules/",
+    "\\.test\\.(js|jsx)$",
+    "\\.spec\\.(js|jsx)$"
+  ],
+  "coverageReporters": ["json", "lcov", "text", "clover"]
+}
+
 }
