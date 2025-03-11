@@ -48,16 +48,12 @@
     "src/**/*.{js,jsx}",
     "!src/**/*.test.{js,jsx}",
     "!src/**/*.spec.{js,jsx}",
-    "!src/**/__tests__/**",
-    "!src/index.js",
-    "!src/reportWebVitals.js"
+    "!**/__tests__/**",
+    "!**/node_modules/**",
+    "!**/index.js",
+    "!**/reportWebVitals.js"
   ],
-  "coveragePathIgnorePatterns": [
-    "/node_modules/",
-    "\\.test\\.(js|jsx)$",
-    "\\.spec\\.(js|jsx)$"
-  ],
-  "coverageReporters": ["json", "lcov", "text", "clover"]
+  "coverageReporters": ["lcov", "text"]
 }
 
 }
