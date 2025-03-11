@@ -48,10 +48,10 @@
     "src/**/*.{js,jsx}",
     "!src/**/*.test.{js,jsx}",
     "!src/**/*.spec.{js,jsx}",
-    "!**/__tests__/**",
     "!**/node_modules/**",
-    "!**/index.js",
-    "!**/reportWebVitals.js"
+    "!src/index.js",
+    "!src/reportWebVitals.js",
+    "!src/setupTests.js"
   ],
   "coverageReporters": ["lcov", "text"]
 }
