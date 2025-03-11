@@ -50,8 +50,6 @@
       "!src/**/__tests__/**"
     ],
     "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "src/.*\\.test\\.[jt]sx?$"
     ],
     "coverageReporters": ["json", "lcov", "text", "clover"]
   }
