@@ -1,15 +1,9 @@
-// src/components/Modal.tsx
-import React, { ReactNode, useEffect } from "react";
+// src/components/Modal.jsx
+import React, { useEffect } from "react";
+import PropTypes from "prop-types";
 import "../styles/Modal.css";
 
-interface ModalProps {
-  children: ReactNode;
-  title: string;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const Modal = ({ children, title, isOpen, onClose }: ModalProps) => {
+const Modal = ({ children, title, isOpen, onClose }) => {
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
     return () => {
@@ -26,18 +20,22 @@ const Modal = ({ children, title, isOpen, onClose }: ModalProps) => {
           <h1>{title}</h1>
           <button className="game" onClick={onClose}>X</button>
         </div>
-        <div className="modal-body">{children}</div>
+        <div className="modal-body">
+          {children}
+        </div>
       </div>
     </div>
   );
 };
 
-interface ModalBodyProps {
-  bodyTitle: string;
-  videoUrl: string;
-}
+Modal.propTypes = {
+  children: PropTypes.node.isRequired,
+  title: PropTypes.string.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
-export const ModalBody = ({ bodyTitle, videoUrl }: ModalBodyProps) => (
+const ModalBody = ({ bodyTitle, videoUrl }) => (
   <iframe
     title={bodyTitle}
     src={videoUrl}
@@ -47,4 +45,10 @@ export const ModalBody = ({ bodyTitle, videoUrl }: ModalBodyProps) => (
   />
 );
 
+ModalBody.propTypes = {
+  bodyTitle: PropTypes.string.isRequired,
+  videoUrl: PropTypes.string.isRequired,
+};
+
+export { ModalBody };
 export default Modal;

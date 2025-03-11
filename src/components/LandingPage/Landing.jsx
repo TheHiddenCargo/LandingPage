@@ -4,7 +4,7 @@ import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../../authConfig.js"; // Ajusta la ruta según tu estructura
 import { useNavigate } from "react-router-dom";
 import "./Landing.css";
-import Modal, { ModalBody } from "../Modal.tsx";
+import Modal, { ModalBody } from "../Modal.jsx";
 import logoImage from "../../assets/logo.png";
 
 const Landing = () => {
