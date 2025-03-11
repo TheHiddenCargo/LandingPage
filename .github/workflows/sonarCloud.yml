@@ -7,7 +7,7 @@ on:
 
 jobs:
   sonarcloud:
-    uses: TheHiddenCargo/SonarCloud-PipelineIntegration/.github/workflows/sonarcloud-analysis.yml@v0.1.2
+    uses: TheHiddenCargo/SonarCloud-PipelineIntegration/.github/workflows/sonarcloud-analysis.yml@v0.1.4
     with:
       node-version: '18'
       branch-name: 'main'

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1741717576093" clover="3.2.0">
+  <project timestamp="1741717576094" name="All files">
+    <metrics statements="53" coveredstatements="41" conditionals="17" coveredconditionals="9" methods="12" coveredmethods="10" elements="82" coveredelements="60" complexity="0" loc="53" ncloc="53" packages="3" files="7" classes="7"/>
+    <package name="src">
+      <metrics statements="14" coveredstatements="3" conditionals="7" coveredconditionals="0" methods="2" coveredmethods="1"/>
+      <file name="App.js" path="C:\Users\linkc\Downloads\ARSW\PROYECTO\LandingPage\src\App.js">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="9" count="2" type="stmt"/>
+      </file>
+      <file name="authConfig.js" path="C:\Users\linkc\Downloads\ARSW\PROYECTO\LandingPage\src\authConfig.js">
+        <metrics statements="13" coveredstatements="2" conditionals="7" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="3" count="5" type="stmt"/>
+        <line num="16" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="17" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="38" count="5" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.components">
+      <metrics statements="19" coveredstatements="18" conditionals="6" coveredconditionals="5" methods="6" coveredmethods="6"/>
+      <file name="Lobby.js" path="C:\Users\linkc\Downloads\ARSW\PROYECTO\LandingPage\src\components\Lobby.js">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+      </file>
+      <file name="Modal.jsx" path="C:\Users\linkc\Downloads\ARSW\PROYECTO\LandingPage\src\components\Modal.jsx">
+        <metrics statements="11" coveredstatements="11" conditionals="4" coveredconditionals="4" methods="4" coveredmethods="4"/>
+        <line num="6" count="5" type="stmt"/>
+        <line num="7" count="9" type="stmt"/>
+        <line num="8" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="9" count="9" type="stmt"/>
+        <line num="10" count="9" type="stmt"/>
+        <line num="14" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="31" count="5" type="stmt"/>
+        <line num="38" count="5" type="stmt"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="48" count="5" type="stmt"/>
+      </file>
+      <file name="ProtectedRoute.jsx" path="C:\Users\linkc\Downloads\ARSW\PROYECTO\LandingPage\src\components\ProtectedRoute.jsx">
+        <metrics statements="6" coveredstatements="5" conditionals="2" coveredconditionals="1" methods="1" coveredmethods="1"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="9" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.components.LandingPage">
+      <metrics statements="20" coveredstatements="20" conditionals="4" coveredconditionals="4" methods="4" coveredmethods="3"/>
+      <file name="Landing.js" path="C:\Users\linkc\Downloads\ARSW\PROYECTO\LandingPage\src\components\LandingPage\Landing.js">
+        <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      </file>
+      <file name="Landing.jsx" path="C:\Users\linkc\Downloads\ARSW\PROYECTO\LandingPage\src\components\LandingPage\Landing.jsx">
+        <metrics statements="20" coveredstatements="20" conditionals="4" coveredconditionals="4" methods="4" coveredmethods="3"/>
+        <line num="10" count="4" type="stmt"/>
+        <line num="11" count="8" type="stmt"/>
+        <line num="12" count="8" type="stmt"/>
+        <line num="13" count="8" type="stmt"/>
+        <line num="15" count="8" type="stmt"/>
+        <line num="16" count="8" type="stmt"/>
+        <line num="18" count="8" type="stmt"/>
+        <line num="19" count="4" type="stmt"/>
+        <line num="20" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="1" type="stmt"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="24" count="3" type="stmt"/>
+        <line num="25" count="3" type="stmt"/>
+        <line num="26" count="3" type="stmt"/>
+        <line num="27" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="29" count="1" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="38" count="8" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
