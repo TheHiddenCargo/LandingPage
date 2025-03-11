@@ -46,8 +46,11 @@
   "jest": {
   "collectCoverageFrom": [
     "src/**/*.{js,jsx}",
-    "!src/**/?(*.)+(spec|test).[jt]s?(x)",
-    "!src/**/__tests__/**"
+    "!src/**/*.test.{js,jsx}",
+    "!src/**/*.spec.{js,jsx}",
+    "!src/**/__tests__/**",
+    "!src/index.js",
+    "!src/reportWebVitals.js"
   ],
   "coveragePathIgnorePatterns": [
     "/node_modules/",
