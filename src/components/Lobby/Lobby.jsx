@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Home, Settings, User, LogOut, Plus, X } from "lucide-react";
 import { useMsal } from "@azure/msal-react";
-import { loginRequest } from "../../authConfig.js";
+import { InteractionRequiredAuthError } from "@azure/msal-browser";
+import { loginRequest, tokenRefreshSettings } from "../../authConfig.js";
+import LobbyFullScreenView from "./LobbyFullScreenView";
 import "./Lobby.css";
 
 const Lobby = () => {
@@ -13,38 +15,69 @@ const Lobby = () => {
   const [rounds, setRounds] = useState(1);
   const [players, setPlayers] = useState(2);
   const [userName, setUserName] = useState("Usuario");
+  const [lobbies, setLobbies] = useState([]); 
+  const [lobbyCreated, setLobbyCreated] = useState(false);
+  const [selectedLobby, setSelectedLobby] = useState(null); // Track the selected lobby for fullscreen view
 
-  const { instance, accounts } = useMsal();
+  const { instance, accounts, inProgress } = useMsal();
 
-  // Consulta el nombre del usuario desde Microsoft Graph API
-  useEffect(() => {
-    if (accounts && accounts.length > 0) {
-      instance
-        .acquireTokenSilent({
-          ...loginRequest,
-          account: accounts[0],
-        })
-        .then((response) => {
-          fetch("https://graph.microsoft.com/v1.0/me", {
-            headers: {
-              Authorization: `Bearer ${response.accessToken}`,
-            },
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.displayName) {
-                setUserName(data.displayName);
-              }
-            })
-            .catch((error) =>
-              console.error("Error fetching user info from Graph API:", error)
-            );
-        })
-        .catch((error) =>
-          console.error("Error acquiring token silently:", error)
-        );
+  // Function to acquire token and fetch user data
+  const fetchUserData = useCallback(async () => {
+    if (!accounts || accounts.length === 0 || inProgress !== "none") return;
+
+    try {
+      const response = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account: accounts[0],
+      });
+
+      const userDataResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
+        headers: {
+          Authorization: `Bearer ${response.accessToken}`,
+        },
+      });
+
+      const userData = await userDataResponse.json();
+      if (userData.displayName) {
+        setUserName(userData.displayName);
+      }
+    } catch (error) {
+      if (error instanceof InteractionRequiredAuthError) {
+        console.log("Silent token acquisition failed, falling back to interactive method");
+        try {
+          await instance.acquireTokenPopup(loginRequest);
+          fetchUserData();
+        } catch (interactiveError) {
+          console.error("Error during interactive authentication:", interactiveError);
+        }
+      } else {
+        console.error("Error acquiring token or fetching user data:", error);
+      }
     }
-  }, [accounts, instance]);
+  }, [accounts, instance, inProgress]);
+
+  // Setup token refresh mechanism
+  useEffect(() => {
+    if (inProgress !== "none") return;
+    
+    if (accounts && accounts.length > 0) {
+      fetchUserData();
+      
+      const tokenRefreshTimer = setInterval(() => {
+        fetchUserData();
+      }, tokenRefreshSettings.refreshInterval);
+      
+      return () => clearInterval(tokenRefreshTimer);
+    }
+  }, [accounts, inProgress, fetchUserData]);
+
+  // Handle sign out
+  const handleSignOut = () => {
+  
+    instance.logoutRedirect({
+      postLogoutRedirectUri: window.location.origin,
+    });
+  };
 
   const containerInfo = {
     Container1: {
@@ -75,30 +108,70 @@ const Lobby = () => {
 
   const handleCreateLobby = () => {
     if (lobbyName.trim() !== "" && lobbyPassword.trim() !== "") {
-      console.log("Nueva lobby creada:", {
-        lobbyName,
-        lobbyPassword,
+      // Crear nueva sala
+      const newLobby = {
+        id: Date.now(), // ID único temporal
+        name: lobbyName,
+        password: lobbyPassword, // Nota: en producción, esto debería estar encriptado
         gameMode,
         rounds,
         players,
-      });
+        host: userName,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Guardar la sala en el estado local
+      setLobbies([...lobbies, newLobby]);
+      
+      // Mostrar mensaje de éxito
+      setLobbyCreated(true);
+      
+      // Cerrar el modal
       setShowCreateLobby(false);
+      
+      // Limpiar los campos del formulario
       setLobbyName("");
       setLobbyPassword("");
       setGameMode("Individual");
       setRounds(1);
       setPlayers(2);
-
-      // Para simular una actualización, se recarga la página
+      
+      // Después de 3 segundos, ocultar el mensaje de éxito
       setTimeout(() => {
-        window.location.reload();
-      }, 500);
+        setLobbyCreated(false);
+      }, 3000);
+      
+      console.log("Nueva sala creada:", newLobby);
+      
+      // Seleccionar la sala recién creada para mostrar la vista de pantalla completa
+      setSelectedLobby(newLobby);
     }
   };
 
+  // Handle joining a lobby
+  const handleJoinLobby = (lobby) => {
+    setSelectedLobby(lobby);
+  };
+
+  // Handle closing the fullscreen view
+  const handleCloseLobbyView = () => {
+    setSelectedLobby(null);
+  };
+
+  // If a lobby is selected, show the fullscreen view
+  if (selectedLobby) {
+    return (
+      <LobbyFullScreenView 
+        lobby={selectedLobby} 
+        onClose={handleCloseLobbyView}
+        userName={userName}
+      />
+    );
+  }
+
   return (
     <div className="lobby-container">
-      <Sidebar />
+      <Sidebar onSignOut={handleSignOut} />
       <header className="lobby-header">
         <div className="user-info">
           <h1>Hola, {userName}</h1>
@@ -111,6 +184,31 @@ const Lobby = () => {
           <Plus size={18} />
         </button>
       </header>
+
+      {/* Mensaje de éxito cuando se crea una sala */}
+      {lobbyCreated && (
+        <div className="success-message">
+          ¡Sala creada con éxito! Ahora puedes unirte a la partida.
+        </div>
+      )}
+
+      {/* Mostrar las salas creadas si hay alguna */}
+      {lobbies.length > 0 && (
+        <div className="lobbies-section">
+          <h2 className="title">Tus Salas:</h2>
+          <div className="lobbies-list">
+            {lobbies.map((lobby) => (
+              <div key={lobby.id} className="lobby-card">
+                <h3>{lobby.name}</h3>
+                <p>Modo: {lobby.gameMode}</p>
+                <p>Rondas: {lobby.rounds}</p>
+                <p>Jugadores: {lobby.players}</p>
+                <button className="join-btn" onClick={() => handleJoinLobby(lobby)}>Unirse</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <h2 className="title">Contenedores:</h2>
 
@@ -220,19 +318,24 @@ const Lobby = () => {
   );
 };
 
-const Sidebar = () => (
+const Sidebar = ({ onSignOut }) => (
   <div className="sidebar">
     <div className="sidebar-icons-container">
       <SidebarIcon icon={<Home size={28} />} text="Inicio" />
       <SidebarIcon icon={<User size={28} />} text="Perfil" />
       <SidebarIcon icon={<Settings size={28} />} text="Configuración" />
-      <SidebarIcon icon={<LogOut size={28} />} text="Salir" />
+      <SidebarIcon 
+        icon={<LogOut size={28} />} 
+        text="Salir" 
+        onClick={onSignOut}
+        className="logout-icon"
+      />
     </div>
   </div>
 );
 
-const SidebarIcon = ({ icon, text }) => (
-  <div className="sidebar-icon group">
+const SidebarIcon = ({ icon, text, onClick, className = "" }) => (
+  <div className={`sidebar-icon group ${className}`} onClick={onClick}>
     {icon}
     <span className="sidebar-tooltip">{text}</span>
   </div>

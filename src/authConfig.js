@@ -7,8 +7,8 @@ export const msalConfig = {
         redirectUri: "http://localhost:3000/"
     },
     cache: {
-        cacheLocation: "sessionStorage", 
-        storeAuthStateInCookie: false,
+        cacheLocation: "localStorage", // Changed from sessionStorage to localStorage for persistence
+        storeAuthStateInCookie: true,  // Enable cookies for better persistence across browser sessions
     },
     system: {
         loggerOptions: {
@@ -33,6 +33,12 @@ export const msalConfig = {
             },
         },
     },
+};
+
+// Adding token refresh settings
+export const tokenRefreshSettings = {
+    refreshInterval: 30 * 60 * 1000, // Refresh token every 30 minutes (in milliseconds)
+    refreshBeforeExpiration: 5 * 60 * 1000 // Refresh 5 minutes before token expiration
 };
 
 export const loginRequest = {

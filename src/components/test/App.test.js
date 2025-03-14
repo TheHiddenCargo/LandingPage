@@ -29,3 +29,4 @@ describe("App Routing", () => {
     expect(screen.getByText("Lobby Page")).toBeInTheDocument();
   });
 });
+

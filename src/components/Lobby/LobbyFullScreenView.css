@@ -1,0 +1,245 @@
+/* Full-screen lobby styles */
+.lobby-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: #121212;
+    z-index: 1100;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease-in;
+  }
+  
+  .lobby-fullscreen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .lobby-fullscreen-header h1 {
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+  }
+  
+  .back-button, .exit-button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+  }
+  
+  .back-button:hover, .exit-button:hover {
+    transform: scale(1.05);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  }
+  
+  .back-button {
+    color: #4e8cf7;
+  }
+  
+  .exit-button {
+    color: #ff4d4d;
+  }
+  
+  .back-button span, .exit-button span {
+    margin-left: 8px;
+  }
+  
+  .lobby-fullscreen-content {
+    display: flex;
+    flex: 1;
+    padding: 20px;
+    gap: 20px;
+    overflow-y: auto;
+  }
+  
+  .lobby-details-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .lobby-info-card, .game-rules {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .lobby-info-card h2, .game-rules h2, .connected-users-panel h2 {
+    font-size: 16px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #facc15;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .lobby-info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 12px;
+  }
+  
+  .lobby-info-item svg {
+    margin-right: 10px;
+    color: #4e8cf7;
+  }
+  
+  .game-rules p {
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 10px 0;
+  }
+  
+  .connected-users-panel {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .user-card {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    transition: transform 0.2s;
+  }
+  
+  .user-card:hover {
+    transform: translateX(5px);
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .user-card.empty {
+    opacity: 0.6;
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .default-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #4e8cf7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 15px;
+  }
+  
+  .default-avatar.empty {
+    background-color: #333;
+    color: #666;
+  }
+  
+  .user-info {
+    flex: 1;
+  }
+  
+  .user-name {
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .host-badge {
+    font-size: 10px;
+    background-color: #facc15;
+    color: black;
+    padding: 3px 8px;
+    border-radius: 10px;
+    margin-left: 10px;
+  }
+  
+  .user-status {
+    font-size: 12px;
+  }
+  
+  .status-ready {
+    color: #4CAF50;
+  }
+  
+  .status-waiting {
+    color: #FFC107;
+  }
+  
+  .lobby-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+  
+  .start-game-btn, .ready-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .start-game-btn {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .start-game-btn:hover:not(:disabled) {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+  }
+  
+  .start-game-btn:disabled {
+    background-color: #444;
+    color: #777;
+    cursor: not-allowed;
+  }
+  
+  .ready-btn {
+    background-color: #facc15;
+    color: black;
+  }
+  
+  .ready-btn:hover {
+    background-color: #fcd34d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(250, 204, 21, 0.4);
+  }
+  
+  @media (max-width: 768px) {
+    .lobby-fullscreen-content {
+      flex-direction: column;
+    }
+  }
