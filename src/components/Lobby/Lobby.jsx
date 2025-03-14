@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Home, Settings, User, LogOut, Plus, X } from "lucide-react";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../../authConfig.js";
@@ -12,13 +12,11 @@ const Lobby = () => {
   const [gameMode, setGameMode] = useState("Individual");
   const [rounds, setRounds] = useState(1);
   const [players, setPlayers] = useState(2);
-  const [lobbyCreated, setLobbyCreated] = useState(false);
-  const [connectedPlayers, setConnectedPlayers] = useState([]);
   const [userName, setUserName] = useState("Usuario");
 
   const { instance, accounts } = useMsal();
 
-  // Obtiene el nombre del usuario con Graph API
+  // Consulta el nombre del usuario desde Microsoft Graph API
   useEffect(() => {
     if (accounts && accounts.length > 0) {
       instance
@@ -53,7 +51,7 @@ const Lobby = () => {
       title: "Blanco",
       color: "#FFFFFF",
       description:
-        "Un contenedor modesto con artículos de poco valor. Al abrirlo, puedes encontrar cajas polvorientas con ropa usada, muebles viejos, revistas antiguas y electrónicos obsoletos. A veces, puede haber una pequeña sorpresa, pero la mayoría de las veces, es un riesgo sin gran recompensa.",
+        "Un contenedor modesto con artículos de poco valor. Al abrirlo, puedes encontrar cajas polvorientas con ropa usada, muebles viejos, revistas antiguas y electrónicos obsoletos. A veces, puede haber una pequeña sorpresa, pero la mayoría de las veces, es un riesgo sin gran recompensa..",
     },
     Container2: {
       title: "Gris",
@@ -71,11 +69,10 @@ const Lobby = () => {
       title: "Dorado",
       color: "#FFD700",
       description:
-        "La joya de la corona, el contenedor dorado está reservado para los más audaces. Solo los más experimentados pueden pujar por estas reliquias llenas de secretos. Aquí es donde se esconden artículos raros y exclusivos: lingotes de oro, joyería de diseñador, autos clásicos cubiertos de polvo, documentos históricos y artefactos de gran valor. ¿Serás capaz de llevarte el premio mayor?",
+        "La joya de la corona, el contenedor dorado está reservado para los más audaces. Solo los más experimentados pueden pujar por estas reliquias llenas de secretos. Aquí es donde se esconden artículos raros y exclusivos: lingotes de oro, joyería de diseñador, autos clásicos cubiertos de polvo, documentos históricos y artefactos de gran valor. ¿Serás capaz de llevarte el premio mayor?.",
     },
   };
 
-  // Función para crear el lobby
   const handleCreateLobby = () => {
     if (lobbyName.trim() !== "" && lobbyPassword.trim() !== "") {
       console.log("Nueva lobby creada:", {
@@ -85,22 +82,18 @@ const Lobby = () => {
         rounds,
         players,
       });
-      // En un escenario real, aquí se haría un POST a un backend.
-      // Simulamos la creación del lobby:
-      setLobbyCreated(true);
-      // Simula que el creador se une al lobby
-      setConnectedPlayers([{ id: 1, name: userName }]);
-    }
-  };
+      setShowCreateLobby(false);
+      setLobbyName("");
+      setLobbyPassword("");
+      setGameMode("Individual");
+      setRounds(1);
+      setPlayers(2);
 
-  // Función para cancelar o salir del lobby
-  const handleCancelLobby = () => {
-    console.log("Lobby cancelado o salido");
-    // Reinicia el estado del lobby
-    setLobbyCreated(false);
-    setConnectedPlayers([]);
-    // Si deseas recargar la página:
-    // window.location.reload();
+      // Para simular una actualización, se recarga la página
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
   };
 
   return (
@@ -111,137 +104,116 @@ const Lobby = () => {
           <h1>Hola, {userName}</h1>
           <p className="lobby-subtitle">Bienvenido a The Hidden Cargo</p>
         </div>
-        {!lobbyCreated && (
-          <button
-            className="create-lobby-btn"
-            onClick={() => setShowCreateLobby(true)}
-          >
-            <Plus size={18} />
-          </button>
-        )}
+        <button
+          className="create-lobby-btn"
+          onClick={() => setShowCreateLobby(true)}
+        >
+          <Plus size={18} />
+        </button>
       </header>
 
-      {!lobbyCreated ? (
-        <>
-          <h2 className="title">Contenedores:</h2>
-          <div className="slider">
-            {Object.keys(containerInfo).map((container, index) => (
-              <div
-                key={index}
-                className={`container-box ${container.toLowerCase()}`}
-                onMouseEnter={() => setHoveredContainer(container)}
-                onMouseLeave={() => setHoveredContainer(null)}
-              ></div>
-            ))}
-          </div>
+      <h2 className="title">Contenedores:</h2>
 
-          <div className="info-container">
-            <div className="info-image"></div>
-            <div className="info-text">
-              <h3>Lo Desconocido Espera... ¿Te Atreves?</h3>
-              <p>
-                En el interior de este contenedor yace un misterio esperando a ser
-                revelado. Cada caja, cada rincón oscuro, oculta una historia: algunas
-                de riqueza, otras de olvido. ¿Tendrás la astucia para descubrir el
-                tesoro entre la chatarra, o caerás en la trampa del riesgo? Elige con
-                sabiduría… y que la suerte esté de tu lado ✨.
-              </p>
-            </div>
-          </div>
+      <div className="slider">
+        {Object.keys(containerInfo).map((container, index) => (
+          <div
+            key={index}
+            className={`container-box ${container.toLowerCase()}`}
+            onMouseEnter={() => setHoveredContainer(container)}
+            onMouseLeave={() => setHoveredContainer(null)}
+          ></div>
+        ))}
+      </div>
 
-          <div className={`info-panel ${hoveredContainer ? "show" : ""}`}>
-            {hoveredContainer && (
-              <>
-                <h3 style={{ color: containerInfo[hoveredContainer].color }}>
-                  {containerInfo[hoveredContainer].title}
-                </h3>
-                <p>{containerInfo[hoveredContainer].description}</p>
-              </>
-            )}
-          </div>
+      <div className="info-container">
+        <div className="info-image"></div>
+        <div className="info-text">
+          <h3>Lo Desconocido Espera... ¿Te Atreves?</h3>
+          <p>
+            En el interior de este contenedor yace un misterio esperando a ser
+            revelado. Cada caja, cada rincón oscuro, oculta una historia: algunas
+            de riqueza, otras de olvido. ¿Tendrás la astucia para descubrir el
+            tesoro entre la chatarra, o caerás en la trampa del riesgo? Elige con
+            sabiduría… y que la suerte esté de tu lado ✨.
+          </p>
+        </div>
+      </div>
 
-          {showCreateLobby && (
-            <div className="overlay">
-              <div className="create-lobby-modal">
-                <button
-                  className="close-btn"
-                  onClick={() => setShowCreateLobby(false)}
-                >
-                  <X size={22} />
-                </button>
-                <h2 className="modal-title">The Hidden Cargo</h2>
-                <p className="modal-description">
-                  Crea una nueva sala y únete a la aventura.
-                </p>
+      <div className={`info-panel ${hoveredContainer ? "show" : ""}`}>
+        {hoveredContainer && (
+          <>
+            <h3 style={{ color: containerInfo[hoveredContainer].color }}>
+              {containerInfo[hoveredContainer].title}
+            </h3>
+            <p>{containerInfo[hoveredContainer].description}</p>
+          </>
+        )}
+      </div>
 
-                <label>Nombre de la sala</label>
-                <input
-                  type="text"
-                  className="lobby-input"
-                  value={lobbyName}
-                  onChange={(e) => setLobbyName(e.target.value)}
-                />
-
-                <label>Contraseña</label>
-                <input
-                  type="password"
-                  className="lobby-input"
-                  value={lobbyPassword}
-                  onChange={(e) => setLobbyPassword(e.target.value)}
-                />
-
-                <label>Modo de juego</label>
-                <select
-                  className="lobby-input"
-                  value={gameMode}
-                  onChange={(e) => setGameMode(e.target.value)}
-                >
-                  <option value="Individual">Individual</option>
-                  <option value="Equipos">Por equipos</option>
-                </select>
-
-                <label>Rondas</label>
-                <input
-                  type="number"
-                  className="lobby-input"
-                  placeholder="Número de rondas"
-                  value={rounds}
-                  onChange={(e) => setRounds(Number(e.target.value))}
-                  min={1}
-                />
-
-                <label>Jugadores</label>
-                <input
-                  type="number"
-                  className="lobby-input"
-                  placeholder="Número de jugadores"
-                  value={players}
-                  onChange={(e) => setPlayers(Number(e.target.value))}
-                  min={2}
-                />
-
-                <button className="confirm-btn" onClick={handleCreateLobby}>
-                  Crear Sala
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      ) : (
-        // Vista del lobby una vez creado, mostrando jugadores conectados y botón de cancelar/salir
-        <div className="lobby-created">
-          <header className="lobby-header">
-            <div className="user-info">
-              <h1>Lobby: {lobbyName}</h1>
-              <p className="lobby-subtitle">
-                Jugadores conectados: {connectedPlayers.map((p) => p.name).join(", ")}
-              </p>
-            </div>
-            <button className="cancel-btn" onClick={handleCancelLobby}>
-              Cancelar / Salir
+      {showCreateLobby && (
+        <div className="overlay">
+          <div className="create-lobby-modal">
+            <button
+              className="close-btn"
+              onClick={() => setShowCreateLobby(false)}
+            >
+              <X size={22} />
             </button>
-          </header>
-          {/* Aquí podrías agregar más contenido del lobby, chat, lista de jugadores, etc. */}
+            <h2 className="modal-title">The Hidden Cargo</h2>
+            <p className="modal-description">
+              Crea una nueva sala y únete a la aventura.
+            </p>
+
+            <label>Nombre de la sala</label>
+            <input
+              type="text"
+              className="lobby-input"
+              value={lobbyName}
+              onChange={(e) => setLobbyName(e.target.value)}
+            />
+
+            <label>Contraseña</label>
+            <input
+              type="password"
+              value={lobbyPassword}
+              className="lobby-input"
+              onChange={(e) => setLobbyPassword(e.target.value)}
+            />
+
+            <label>Modo de juego</label>
+            <select
+              className="lobby-input"
+              value={gameMode}
+              onChange={(e) => setGameMode(e.target.value)}
+            >
+              <option value="Individual">Individual</option>
+              <option value="Equipos">Por equipos</option>
+            </select>
+
+            <label>Rondas</label>
+            <input
+              type="number"
+              className="lobby-input"
+              placeholder="Número de rondas"
+              value={rounds}
+              onChange={(e) => setRounds(Number(e.target.value))}
+              min={1}
+            />
+
+            <label>Jugadores</label>
+            <input
+              type="number"
+              className="lobby-input"
+              placeholder="Número de jugadores"
+              value={players}
+              onChange={(e) => setPlayers(Number(e.target.value))}
+              min={2}
+            />
+
+            <button className="confirm-btn" onClick={handleCreateLobby}>
+              Crear Sala
+            </button>
+          </div>
         </div>
       )}
     </div>
