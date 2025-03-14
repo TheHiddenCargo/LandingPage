@@ -7,7 +7,7 @@ import App from "../../App";
 
 // Mocks para simplificar el test de enrutamiento
 jest.mock("../../components/LandingPage/Landing", () => () => <div>Landing Page</div>);
-jest.mock("../../components/Lobby", () => () => <div>Lobby Page</div>);
+jest.mock("../../components/Lobby/Lobby", () => () => <div>Lobby Page</div>);
 jest.mock("../../components/ProtectedRoute", () => ({ children }) => children);
 
 describe("App Routing", () => {
