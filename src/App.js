@@ -2,8 +2,8 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Landing from "./components/LandingPage/Landing";
-import Lobby from "./components/Lobby"; // Asegúrate que el nombre y la ruta sean correctos
-import ProtectedRoute from "./components/ProtectedRoute"; // Importación sin llaves
+import Lobby from "./components/Lobby/Lobby";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
