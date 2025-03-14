@@ -335,10 +335,20 @@ const Sidebar = ({ onSignOut }) => (
 );
 
 const SidebarIcon = ({ icon, text, onClick, className = "" }) => (
-  <div className={`sidebar-icon group ${className}`} onClick={onClick}>
+  <div 
+    className={`sidebar-icon group ${className}`} 
+    role="button" 
+    tabIndex="0" 
+    onClick={onClick} 
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        onClick();
+      }
+    }}
+  >
     {icon}
-    <span className="sidebar-tooltip">{text}</span>
   </div>
 );
+
 
 export default Lobby;
