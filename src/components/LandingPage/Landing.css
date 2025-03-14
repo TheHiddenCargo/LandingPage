@@ -29,7 +29,6 @@ button.game{
 }
 
 
-
 .left-section {
   width: 40%;
   display: flex;
@@ -94,24 +93,117 @@ button.game{
   background-attachment: fixed;
 }
 
-div.menu{
+
+div.menu {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 20px;
+  flex-direction: row;  
+  justify-content: space-evenly;
+  position: absolute;
+  bottom: 70px; 
+  left: 58%;
+  transform: translateX(-50%); 
+  width: 70%;
+  max-width: 600px; 
 }
-div.menu button{
+
+
+div.menu button {
   padding: 8px;
   z-index: 0;
+  box-shadow: none !important;
+  border: none; 
+  outline: none; 
+  background: var(--colorButtons); 
 }
 
 div.menu button:hover{
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  transform: scale(1.05);
+  box-shadow: none !important; 
+  transform: scale(1.05); 
   font-size: var(--fontSizeButtonsHoover);
-  z-index: 1;
 }
 
 
+/* Responsive */
+@media (max-width: 1024px) {
+  .landing-container {
+    flex-direction: column; 
+  }
 
+  .left-section {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+  }
+
+  .right-section {
+    width: 100%;
+    height: 50vh; 
+    background-size: cover;
+    background-position: cover;
+  }
+
+  
+  .logo {
+    width: 60%; /* Reduce el tamaño del logo */
+    max-width: 350px; /* Máximo tamaño permitido */
+    margin: 10px auto;
+  }
+  
+
+  .description {
+    font-size: 14px; 
+    margin: 5px auto;
+  }
+
+  div.menu {
+    width: 90%;
+    bottom: 20px; 
+  }
+
+  div.menu button {
+    font-size: 18px;
+    padding: 10px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  div.menu {
+    flex-wrap: wrap; 
+    justify-content: center;
+    gap: 15px;
+  }
+
+  div.menu button {
+    width: 80%; 
+    font-size: 16px;
+  }
+
+  .logo {
+    width: 50%; 
+    max-width: 280px;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .description {
+    font-size: 12px; 
+  }
+
+  .logo {
+    width: 40%;
+    max-width: 200px;
+  }
+
+  
+  div.menu {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  div.menu button {
+    width: 90%;
+    font-size: 14px;
+  }
+}
