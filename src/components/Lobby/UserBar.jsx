@@ -10,48 +10,148 @@ import purpleGirl from "../../assets/gamerIcons/purpleGirl.png";
 import redGirl from "../../assets/gamerIcons/redGirl.png";
 import redGuy from "../../assets/gamerIcons/redGuy.png";
 import wolf from "../../assets/gamerIcons/Wolf.png";
+import money from "../../assets/Money.png";
 import "../../styles/UserBar.css"
-import {fetchData} from "../../personalHooks/fetchData";
 import {useFetch} from "../../personalHooks/useFetch";
+import { io } from 'socket.io-client';
 
 
+export const UserBar = ({userNickname}) => {
+    const [balance, setBalance] = useState(5000);
+    const [updateUser, setUpdateUser] = useState(false);
+    const [userFound, setUserFound] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
 
-export const UserBar = ({nickname}) => {
-    return(
-        <div className="user-content">
-            <div id="balance">
-                <p>Balance</p>
+    /**
+    const userSocket = io('https://thehiddencargo1.azure-api.net/creation/balance', {
+        extraHeaders: {
+            'Ocp-Apim-Subscription-Key': 'b553314cb92447a6bb13871a44b16726'
+        }
+    });
+    **/
+    const {data, loading, status, error} = useFetch(
+        {
+            url: `https://thehiddencargo1.azure-api.net/creation/users/${userNickname}/info`,
+            method: 'GET',
+            headers: {
+                'accept': '*/*'
+            }
+        }, [userNickname], userNickname || updateUser);
+
+    /**
+    useEffect(() => {
+        userSocket.on('connect', () => setIsConnected(true));
+
+        userSocket.on('transactions/made/' + userNickname, (currentBalance) => {
+            setBalance(currentBalance);
+        });
+
+        return () => {
+            userSocket.off('connect');
+            userSocket.off('transactions/made');
+        };
+    }, []);
+        **/
+
+    useEffect(() => {
+        console.log("get info")
+        console.log(data, loading,status,userNickname,error);
+        if (!loading && status === 200)  setUserFound(true);
+    }, [loading,status]);
+
+    const handleUpdate = () =>{
+        setUpdateUser(true);
+        return <UserDialog toCreate={false} currentNickname={data.nickName}/>;
+    }
+
+
+    return (
+        <>
+        {userFound ?
+            <>
+            <div className="user-info">
+                <div className="icon">
+                    <button onClick={handleUpdate}>
+                        <img className="icon" src={data.photo} alt="User Icon"/>
+                    </button>
+                </div>
+                <div id="Bienvenida">
+                    <h1>Hola, {data.nickName}</h1>
+                    <p className="lobby-subtitle">Bienvenido a The Hidden Cargo</p>
+                </div>
+                <div id="balance">
+                    <p>${balance}</p>
+                </div>
             </div>
-            <div className="info">
-                <img src={"../assets/gamerIcons/Dragon.png"}/>
-                <p>{nickname}</p>
-            </div>
-
-        </div>
+            </>
+            : <div className="user-info"><h2>Usuario No encontrado</h2></div>
+        }
+        </>
     );
+
 };
 
 UserBar.propTypes = {
-    nickName: PropTypes.string.isRequired
+    userNickname: PropTypes.string
 };
 
-const UserCreation = ({currentNickname,setNickname, email,openDialog}) =>{
-    const [icon,setIcon] = useState(null);
-    const [sendUser,setSendUser] = useState(false);
-    const [isOpen,setIsOpen] = useState(openDialog);
+const UserDialog = ({toCreate,currentNickname, email,updateNickname}) => {
+    const [newNickname, setNewNickname] = useState(currentNickname);
+    const [icon, setIcon] = useState(null);
+    const[title, setTitle] = useState(null);
+    const[submitButton, setSubmitButton]= useState(null);
+    const [createUser, setCreateUser] = useState(false);
+    const [updateUser, setUpdateUser] = useState(false);
     const dialogRef = useRef(null);
-
-    let {loading,status} = useFetch({
+    /*Fetch to register User*/
+    const {loading:loadingCreate, status:statusCreate, error: errorCreate} = useFetch({
         url: 'https://thehiddencargo1.azure-api.net/creation/users/register',
         method: 'POST',
         body: {
             email: email,
-            nickName: currentNickname,
+            nickName: newNickname,
             balance : "5000",
             icon : icon
         }
-    },[sendUser],sendUser === true);
+    },[createUser],createUser);
 
+    /*Fetch GET Information*/
+    const {data:userData, loading:userLoading, status:userStatus, error:userError} = useFetch(
+        {
+            url: "https://thehiddencargo1.azure-api.net/creation/users/" + currentNickname + "/info",
+            method: 'GET',
+            headers: {
+                'accept': '*/*'
+            }
+        }, [], !toCreate);
+
+    /*Fetch to update NickName*/
+    const {loading:nickLoading, status:nickStatus, error:nickError} = useFetch(
+        {
+            url: `http://localhost:8080/users/update/nickname/${currentNickname}` ,
+            method: 'PUT',
+            headers: {
+                'accept': '*/*',
+                'Content-Type': 'application/json'
+            },
+            body: {
+                "newNickName": newNickname
+            }},[updateUser],updateUser);
+
+    /*Fetch to update icon*/
+    const {loading:iconLoading, status:iconStatus, error:iconEror} = useFetch(
+        {
+            url: `http://localhost:8080/users/update/photo/${currentNickname}` ,
+            method: 'PUT',
+            headers: {
+                'accept': '*/*',
+                'Content-Type': 'application/json'
+            },
+            body: {
+                "photo": icon
+            }},[updateUser],updateUser);
+
+    /*Icons definition*/
     const icons = [
         blueGuy,
         greenGuy,
@@ -65,17 +165,15 @@ const UserCreation = ({currentNickname,setNickname, email,openDialog}) =>{
     ];
 
     const handleClose = () => {
-        setIsOpen(false);
         if (dialogRef.current) {
             dialogRef.current.close();
         }
     };
 
-
     const handleSubmit = (e) => {
            e.preventDefault();
-           console.log("Sumbit");
-           setSendUser(true);
+           if(toCreate) setCreateUser(true);
+           else setUpdateUser(true);
     };
 
     const handleKeyDown = (e) => {
@@ -85,7 +183,14 @@ const UserCreation = ({currentNickname,setNickname, email,openDialog}) =>{
     };
 
     useEffect(() => {
-        if (isOpen && dialogRef) {
+        if (dialogRef) {
+            if(toCreate){
+                setTitle("Creación de Usuario");
+                setSubmitButton("Crear");
+            }else{
+                setTitle(`Actualizando a: ${currentNickname}`);
+                setSubmitButton("Actualizar");
+            }
             dialogRef.current.showModal();
             const handleCancel = (event) => {
                 event.preventDefault();
@@ -97,25 +202,54 @@ const UserCreation = ({currentNickname,setNickname, email,openDialog}) =>{
             };
         }
     }, []);
-
+    /*Handle Create*/
     useEffect(() => {
-        console.log(loading,status,sendUser);
-        if(loading === false && sendUser && status === 201) handleClose();
-        if(loading === false && sendUser && status === 400) {
-            setNickname(null);
-            setSendUser(false);
+        console.log("Creating")
+        console.log(loadingCreate,statusCreate,createUser);
+        if(loadingCreate === false && createUser && statusCreate === 201){
+            updateNickname(newNickname);
+            handleClose();
+        }
+        if(loadingCreate === false && createUser && statusCreate === 400) {
+            setNewNickname(null);
+            setCreateUser(false);
             setIcon(null);
         }
-    }, [loading,status,sendUser]);
+    }, [loadingCreate,statusCreate]);
+
+    /*Handle GET*/
+    useEffect(() => {
+        console.log("GETTING");
+        console.log(userData,userLoading,userStatus);
+        if(!toCreate && !userLoading && userStatus === 200 && (!updateUser || !createUser) ){
+            setNewNickname(userData.nickName);
+            setIcon(userData.photo);
+        }}, [userLoading,userData]);
+
+    /*Handle Update*/
+    useEffect(() => {
+        console.log("UPDATING");
+        console.log(nickLoading,iconLoading, nickStatus, iconStatus);
+        if(!nickLoading && !iconLoading && nickStatus === 200 && iconStatus === 200) window.location.reload();
+        else{
+            if(!nickLoading &&  nickStatus === 400) {
+                setNewNickname(currentNickname);
+            }
+            if(!iconLoading &&  iconStatus === 400) {
+                setIcon(userData.photo);
+            }
+        }
+        if(!nickLoading && !iconLoading)handleClose();
+    }, [nickLoading,iconLoading,nickStatus,iconStatus]);
 
   return(
       <dialog className="user-creation" ref={dialogRef}>
-          <h2>Creación de Usuario</h2>
+          <h2>{title}</h2>
         <form onSubmit={handleSubmit}>
             <input
             type="text"
             placeholder={currentNickname}
-            onChange={(e)=>{setNickname(e.target.value)}}
+            onChange={(e)=>{setNewNickname(e.target.value)}}
             onKeyDown={handleKeyDown}
             maxLength="12"
             />
@@ -132,25 +266,28 @@ const UserCreation = ({currentNickname,setNickname, email,openDialog}) =>{
 
                 ))}
             </div>
-
+            <div className="buttons">
             <input
                 type="submit"
-                value="Crear Usuario"
-                disabled={!icon || !currentNickname}
+                value={submitButton}
+                disabled={!icon || !newNickname}
             />
+                {toCreate ? null : <button onClick={handleClose}>Cancel</button>}
+            </div>
         </form>
-          {status !== 201 && <h2>{status}</h2>}
+          {statusCreate !== 201 && <h2>{errorCreate}</h2>}
       </dialog>
+
 
 
   );
 };
 
-UserCreation.propTypes = {
-    currentNickname: PropTypes.string.isRequired,
-    email: PropTypes.string.isRequired,
-    openDialog : PropTypes.bool.isRequired,
-    setNickname : PropTypes.func.isRequired
+UserDialog.propTypes = {
+    toCreate : PropTypes.bool.isRequired,
+    currentNickname: PropTypes.string,
+    email: PropTypes.string,
+    updateNickname : PropTypes.func
 };
 export  default  UserBar;
-export {UserCreation};
+export {UserDialog};

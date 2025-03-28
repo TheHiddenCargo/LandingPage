@@ -1,6 +1,6 @@
-import React, {useEffect, useState, useCallback, Suspense} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import { Home, Settings, User, LogOut, Plus, X } from "lucide-react";
-import UserBar, {UserCreation} from "./UserBar";
+import UserBar, {UserDialog} from "./UserBar";
 import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest, tokenRefreshSettings } from "../../authConfig.js";
@@ -8,6 +8,7 @@ import LobbyFullScreenView from "./LobbyFullScreenView";
 import "./Lobby.css";
 
 import {useFetch} from "../../personalHooks/useFetch";
+import {io} from "socket.io-client";
 
 
 
@@ -37,13 +38,15 @@ const Lobby = () => {
         }
       },[searchUser],searchUser === true);
 
+
   useEffect(() => {
+    console.log("Iniciando",data,loading,status)
     if(loading === false && status === 404){
       setCreateUser(true);
     }else if(loading === false && status === 200 ){
       setUserName(data.nickName);
     }
-  }, [status,loading]);
+  }, [loading,status]);
 
 
 
@@ -66,8 +69,7 @@ const Lobby = () => {
       });
 
       const userData = await userDataResponse.json();
-      if (userData.displayName && userData.mail) {
-        setUserName(userData.displayName);
+      if (userData.mail) {
         setEmail(userData.mail);
         setSearchUser(true);
       }
@@ -207,10 +209,7 @@ const Lobby = () => {
               <div className="lobby-container">
                 <Sidebar onSignOut={handleSignOut}/>
                 <header className="lobby-header">
-                  <div className="user-info">
-                    <h1>Hola, {userName}</h1>
-                    <p className="lobby-subtitle">Bienvenido a The Hidden Cargo</p>
-                  </div>
+                  <UserBar userNickname={userName}/>
                   <button
                       className="create-lobby-btn"
                       onClick={() => setShowCreateLobby(true)}
@@ -348,7 +347,7 @@ const Lobby = () => {
                       </div>
                     </div>
                 )}
-                {createUser && <UserCreation email={email} currentNickname={userName} openDialog={createUser} setNickname={setUserName}/>}
+                {createUser && <UserDialog email={email} currentNickname={userName} updateNickname={setUserName} toCreate={true}/>}
               </div>
         }
       </>

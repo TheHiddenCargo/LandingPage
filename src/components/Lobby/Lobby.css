@@ -38,10 +38,7 @@
   margin-left: 150px;
 }
 
-.user-info {
-  display: flex;
-  flex-direction: column;
-}
+
 
 .create-lobby-btn {
   background-color: #4e8cf7;

@@ -31,6 +31,7 @@ export function useFetch(config,states,condition){
                         signal: abortController.signal
                     })
                     .then((response) =>{
+                        console.log(url);
                          setStatus(response.status);
                         return response.json()
                     })
