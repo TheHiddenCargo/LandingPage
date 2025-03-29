@@ -209,7 +209,7 @@ const Lobby = () => {
               <div className="lobby-container">
                 <Sidebar onSignOut={handleSignOut}/>
                 <header className="lobby-header">
-                  <UserBar userNickname={userName}/>
+                  <UserBar userNickname={userName} email={email}/>
                   <button
                       className="create-lobby-btn"
                       onClick={() => setShowCreateLobby(true)}
