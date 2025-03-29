@@ -1,0 +1,108 @@
+/* Importar la fuente "Press Start 2P" */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+.partida-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: black;
+  background-image: url('../../assets/ContainerOpen.png');
+  background-size: 30%;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.partida-titulo {
+  position: absolute;
+  top: 20px; 
+  left: 50%;
+  transform: translateX(-50%); 
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 4px 4px 8px rgba(245, 113, 73, 0.8); 
+  font-family: 'Press Start 2P', cursive; 
+  text-align: center;
+}
+
+.partida-imagen {
+  width: 20vw;
+  height: auto;
+  animation: pulse 2s infinite ease-in-out;
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes pulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.05); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Botón de Apostar */
+.boton-apostar {
+  width: 100%;
+  max-width: 300px;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #ff9800, #ff5722);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease-in-out;
+  font-family: 'Press Start 2P', cursive; 
+}
+
+.boton-apostar:hover {
+  background: linear-gradient(135deg, #ffb74d, #e64a19);
+  transform: translateX(-50%) scale(1.05);
+  box-shadow: 0 6px 12px rgba(255, 87, 34, 0.4);
+}
+
+.boton-apostar:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+/* Botón de Salir */
+.boton-salir {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #e60000, #ff3333);
+  box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
+  transition: all 0.3s ease-in-out;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.boton-salir:hover {
+  background: linear-gradient(135deg, #ff4d4d, #b30000);
+  box-shadow: 0 6px 12px rgba(255, 0, 0, 0.4);
+  transform: scale(1.05);
+}
+
+.boton-salir:active {
+  transform: scale(0.95);
+}
