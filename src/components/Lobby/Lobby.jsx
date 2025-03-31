@@ -1,6 +1,7 @@
 import React, {useEffect, useState, useCallback} from "react";
 import { Home, Settings, User, LogOut, Plus, X, RefreshCw } from "lucide-react";
-import UserBar, {UserDialog} from "./UserBar";
+import UserBar from "./UserBar";
+import UserDialog  from "./UserDialog";
 import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest, tokenRefreshSettings } from "../../authConfig.js";
