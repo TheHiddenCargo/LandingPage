@@ -1,6 +1,8 @@
 import React, {useEffect, useState, useCallback} from "react";
+
 import { Home, Settings, User, LogOut, Plus, X } from "lucide-react";
-import UserBar, {UserDialog} from "./UserBar";
+import UserBar from "./UserBar";
+import UserDialog from "./UserDialog";
 import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest, tokenRefreshSettings } from "../../authConfig.js";
@@ -8,7 +10,8 @@ import LobbyFullScreenView from "./LobbyFullScreenView";
 import "./Lobby.css";
 
 import {useFetch} from "../../personalHooks/useFetch";
-import {io} from "socket.io-client";
+
+
 
 
 
@@ -28,6 +31,8 @@ const Lobby = () => {
   const [lobbies, setLobbies] = useState([]);
   const [lobbyCreated, setLobbyCreated] = useState(false);
   const [selectedLobby, setSelectedLobby] = useState(null); // Track the selected lobby for fullscreen view
+
+
 
   const {data,loading,status} = useFetch(
       {
@@ -205,11 +210,11 @@ const Lobby = () => {
 
   return (
       <>
-        {loading ? null :
+        {loading? null :
               <div className="lobby-container">
                 <Sidebar onSignOut={handleSignOut}/>
                 <header className="lobby-header">
-                  <UserBar userNickname={userName}/>
+                  <UserBar userNickname={userName} email={email}/>
                   <button
                       className="create-lobby-btn"
                       onClick={() => setShowCreateLobby(true)}
