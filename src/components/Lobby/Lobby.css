@@ -21,6 +21,136 @@
   margin-left: auto;
   margin-right: auto; 
 }
+.reload-lobbies-btn {
+  background-color: #4e8cf7;
+  border: none;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reload-lobbies-btn:hover {
+  background-color: white;
+  color: black;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.password-dialog {
+  background-color: rgba(24, 24, 28, 1);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  padding: 24px;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.password-error {
+  background-color: rgba(210, 40, 40, 0.15);
+  border-left: 3px solid #d22828;
+  color: #ff6b6b;
+  padding: 10px 15px;
+  margin: 15px 0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+/* Ensure the input doesn't have a white background in dark mode */
+.lobby-input {
+  background-color: rgba(30, 30, 34, 1);
+  border: 1px solid rgba(80, 80, 80, 0.3);
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 8px 0 16px;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.lobby-input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.confirm-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.confirm-btn:hover {
+  background-color: #2980b9;
+}
+
+.confirm-btn:disabled {
+  background-color: #7f8c8d;
+  cursor: not-allowed;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 .lobby-subtitle {
   font-size: 14px;

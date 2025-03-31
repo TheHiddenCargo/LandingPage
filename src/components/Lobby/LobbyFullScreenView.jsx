@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { X, Users, ChevronLeft, Clock, Award, Shield } from "lucide-react";
+import Partida from "../Partida/Partida.jsx"; 
 import "./LobbyFullScreenView.css";
+
 
 const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
   const [connectedUsers, setConnectedUsers] = useState([]);
-  
-  // Simulate API data loading
+  const [partidaIniciada, setPartidaIniciada] = useState(false);
+
   useEffect(() => {
-    // For now, only the creator is connected
-    // This will be replaced with actual API calls later
     setConnectedUsers([
       {
         id: 1,
@@ -19,6 +19,10 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
       }
     ]);
   }, [lobby]);
+
+  if (partidaIniciada) {
+    return <Partida onExit={() => setPartidaIniciada(false)} />;
+  }
 
   return (
     <div className="lobby-fullscreen">
@@ -108,7 +112,8 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
       </div>
 
       <div className="lobby-actions">
-        <button className="start-game-btn" disabled={connectedUsers.length < 2}>
+        <button className="start-game-btn" 
+                onClick={() => setPartidaIniciada(true)}>
           Iniciar partida
         </button>
         <button className="ready-btn">
