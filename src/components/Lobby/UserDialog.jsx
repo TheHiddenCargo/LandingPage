@@ -10,19 +10,24 @@ import wolf from "../../assets/gamerIcons/Wolf.png";
 import dragon from "../../assets/gamerIcons/Dragon.png";
 import bear from "../../assets/gamerIcons/bear.png";
 import PropTypes from "prop-types";
+import "../../styles/UserDialog.css"
+import io from "socket.io-client";
 
 
-const UserDialog = ({toCreate,currentNickname, email,updateNickname}) => {
-    const [newNickname, setNewNickname] = useState(currentNickname);
+
+const UserDialog = ({toCreate,email,onClose}) => {
+    const [newNickname, setNewNickname] = useState('');
     const [icon, setIcon] = useState(null);
     const[title, setTitle] = useState(null);
     const[submitButton, setSubmitButton]= useState(null);
     const [createUser, setCreateUser] = useState(false);
-    const [updateUser, setUpdateUser] = useState(false);
     const dialogRef = useRef(null);
+    const socket = useRef(null);
+
+
     /*Fetch to register User*/
     const {loading:loadingCreate, status:statusCreate, error: errorCreate} = useFetch({
-        url: 'https://thehiddencargo1.azure-api.net/creation/users/register',
+        url: 'https://thehiddencargo1.azure-api.net/creation//users/register',
         method: 'POST',
         body: {
             email: email,
@@ -34,32 +39,13 @@ const UserDialog = ({toCreate,currentNickname, email,updateNickname}) => {
 
     /*Fetch GET Information*/
 
-
-    /*Fetch to update NickName*/
-    const {loading:nickLoading, status:nickStatus, error:nickError} = useFetch(
-        {
-            url: `http://localhost:8080/users/update/nickname/${currentNickname}` ,
-            method: 'PUT',
-            headers: {
-                'accept': '*/*',
-                'Content-Type': 'application/json'
-            },
-            body: {
-                "newNickName": newNickname
-            }},[updateUser],updateUser);
-
-    /*Fetch to update icon*/
-    const {loading:iconLoading, status:iconStatus, error:iconEror} = useFetch(
-        {
-            url: `http://localhost:8080/users/update/photo/${currentNickname}` ,
-            method: 'PUT',
-            headers: {
-                'accept': '*/*',
-                'Content-Type': 'application/json'
-            },
-            body: {
-                "photo": icon
-            }},[updateUser],updateUser);
+    const {data : dataUser, status: statusUser} = useFetch({
+       url:  `https://thehiddencargo1.azure-api.net/creation/users/${email}/info`,
+        method: 'GET',
+        headers: {
+           'accept': '*/*'
+        }
+    },[email],!toCreate && email);
 
     /*Icons definition*/
     const icons = [
@@ -77,13 +63,29 @@ const UserDialog = ({toCreate,currentNickname, email,updateNickname}) => {
     const handleClose = () => {
         if (dialogRef.current) {
             dialogRef.current.close();
+            if (!toCreate && onClose) onClose();
+
         }
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const handleUpdate = () =>{
+        socket.current.emit('update_nickname', {
+            newNickname : newNickname
+        }, (response) => {
+            console.log(`Respuesta del servidor para update_nickname: ${response}`);
+        });
+
+        socket.current.emit('update_photo',{
+            newPhoto: icon
+        },(response) =>{
+            console.log(`Respuesta del servidor para update_photo: ${response}`);
+        });
+        handleClose();
+    };
+
+    const handleSubmit = () => {
         if(toCreate) setCreateUser(true);
-        else setUpdateUser(true);
+        else handleUpdate();
     };
 
     const handleKeyDown = (e) => {
@@ -92,14 +94,36 @@ const UserDialog = ({toCreate,currentNickname, email,updateNickname}) => {
         }
     };
 
+
+
     useEffect(() => {
         if (dialogRef) {
+            socket.current =  io("http://localhost:8085", {
+                query: { email: email }
+            });
+            socket.current.on('connect', () => {
+                console.log(`userDialog connected ${email}`);
+
+            });
+
+            socket.current.on('disconnect', () => {
+                console.log(`userDialog disconnected ${email}`);
+            });
+
+            socket.current.on('error', (error) => {
+                console.error("Socket.IO error:", error);
+            });
+
+            socket.current.on('connect_error', (error) => {
+                console.error("Socket.IO connection error:", error);
+            });
             if(toCreate){
                 setTitle("Creación de Usuario");
                 setSubmitButton("Crear");
             }else{
-                setTitle(`Actualizando a: ${currentNickname}`);
+
                 setSubmitButton("Actualizar");
+
             }
             dialogRef.current.showModal();
             const handleCancel = (event) => {
@@ -108,16 +132,41 @@ const UserDialog = ({toCreate,currentNickname, email,updateNickname}) => {
             dialogRef.current.addEventListener('cancel', handleCancel);
 
             return () => {
-                dialogRef.current.removeEventListener('cancel', handleCancel);
+                if (dialogRef.current) {
+                    dialogRef.current.removeEventListener('cancel', handleCancel);
+                }
+
+                console.log('Limpiando conexión de socket');
+                socket.current.disconnect();
+                socket.current.off('connect');
+                socket.current.off('disconnect');
+                socket.current.off('error');
+                socket.current.off('connect_error');
+
             };
         }
+
     }, []);
+
+    useEffect(() => {
+        if(dataUser && statusUser === 200){
+            setNewNickname(dataUser["nickname"]);
+            setIcon(dataUser["photo"]);
+            setTitle(`Actualizando a: ${newNickname}`);
+        }
+    }, [dataUser,statusUser]);
     /*Handle Create*/
     useEffect(() => {
         console.log("Creating")
         console.log(loadingCreate,statusCreate,createUser);
         if(loadingCreate === false && createUser && statusCreate === 201){
-            updateNickname(newNickname);
+            socket.current.emit('sent_info', {}, (response) => {
+                console.log(`Respuesta del servidor para sent_info: ${response}`);
+            });
+
+            socket.current.emit('sent_balance', {}, (response) => {
+                console.log(`Respuesta del servidor para sent_balance: ${response}`);
+            });
             handleClose();
         }
         if(loadingCreate === false && createUser && statusCreate === 400) {
@@ -130,29 +179,15 @@ const UserDialog = ({toCreate,currentNickname, email,updateNickname}) => {
     /*Handle GET*/
 
 
-    /*Handle Update*/
-    useEffect(() => {
-        console.log("UPDATING");
-        console.log(nickLoading,iconLoading, nickStatus, iconStatus);
-        if(!nickLoading && !iconLoading && nickStatus === 200 && iconStatus === 200) window.location.reload();
-        else{
-            if(!nickLoading &&  nickStatus === 400) {
-                setNewNickname(currentNickname);
-            }
-            if(!iconLoading &&  iconStatus === 400) {
-                setIcon(null);
-            }
-        }
-        if(!nickLoading && !iconLoading)handleClose();
-    }, [nickLoading,iconLoading,nickStatus,iconStatus]);
+
 
     return(
         <dialog className="user-creation" ref={dialogRef}>
             <h2>{title}</h2>
-            <form onSubmit={handleSubmit}>
+            <div className="user-form">
                 <input
                     type="text"
-                    placeholder={currentNickname}
+                    placeholder={newNickname}
                     onChange={(e)=>{setNewNickname(e.target.value)}}
                     onKeyDown={handleKeyDown}
                     maxLength="12"
@@ -171,14 +206,11 @@ const UserDialog = ({toCreate,currentNickname, email,updateNickname}) => {
                     ))}
                 </div>
                 <div className="buttons">
-                    <input
-                        type="submit"
-                        value={submitButton}
-                        disabled={!icon || !newNickname}
-                    />
-                    {toCreate ? null : <button onClick={handleClose}>Cancel</button>}
+                    <button disabled={!icon || !newNickname} onClick={handleSubmit}>{submitButton}</button>
+
+                    {!toCreate && <button onClick={handleClose}>Cancel</button>}
                 </div>
-            </form>
+            </div>
             {statusCreate !== 201 && <h2>{errorCreate}</h2>}
         </dialog>
 
@@ -189,9 +221,8 @@ const UserDialog = ({toCreate,currentNickname, email,updateNickname}) => {
 
 UserDialog.propTypes = {
     toCreate : PropTypes.bool.isRequired,
-    currentNickname: PropTypes.string,
-    email: PropTypes.string,
-    updateNickname : PropTypes.func
+    email: PropTypes.string.isRequired,
+    onClose : PropTypes.func
 };
 
-export default UserDialog
+export default UserDialog;

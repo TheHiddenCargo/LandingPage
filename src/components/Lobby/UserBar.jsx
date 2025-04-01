@@ -2,73 +2,97 @@ import React, {useEffect, useState} from "react";
 import "../../styles/UserBar.css"
 import io from 'socket.io-client';
 import PropTypes from "prop-types";
+import UserDialog from "./UserDialog";
 
 
 function UserBar ({email}) {
     const [balance, setBalance] = useState(0);
     const [nickname, setNickname] = useState(' ');
     const [icon, setIcon] = useState(null);
-    const [isConnected, setIsConnected] = useState(false);
-    const[socket, setSocket] = useState(null);
+    const[update,setUpdate] = useState(false);
+    const [dialogKey, setDialogKey] = useState(0);
+
 
 
     useEffect(() => {
+        console.log("Iniciando conexión Socket.IO");
         const socketInstance = io("http://localhost:8085", {
-            transports: ["websocket"],
             query: { email: email }
         });
-        setSocket(socketInstance);
 
-
+        // Configurar listeners
         socketInstance.on('connect', () => {
-            setIsConnected(true);
             console.log(`Conectado a ${email}`);
+
+            // Emitir eventos inmediatamente después de conectar
+            socketInstance.emit('sent_info', {}, (response) => {
+                console.log(`Respuesta del servidor para sent_info: ${response}`);
+            });
+
+            socketInstance.emit('sent_balance', {}, (response) => {
+                console.log(`Respuesta del servidor para sent_balance: ${response}`);
+            });
         });
 
-        socketInstance.on('conexion_confirmada', () => {
-            setIsConnected(true);
-            console.log(`Conectado a ${email}`);
-        });
-
-        socketInstance.on('get_info',(data) => {
-            setNickname(data['nickname']);
-            setIcon(data['photo']);
+        socketInstance.on('get_info', (data) => {
+            setNickname(data["nickname"]);
+            setIcon(data["photo"]);
         });
 
         socketInstance.on('accept_balance', (data) => {
-            setBalance(data['userBalance']);
+            setBalance(data["userBalance"]);
         });
 
-        socketInstance.on('disconnect',() =>
-        {
+        socketInstance.on('disconnect', () => {
             console.log(`Disconnected ${email}`);
-            setIsConnected(false);
         });
 
-    }, []);
+        socketInstance.on('error', (error) => {
+            console.error("Socket.IO error:", error);
+        });
+
+        socketInstance.on('connect_error', (error) => {
+            console.error("Socket.IO connection error:", error);
+        });
+
+
+        // Limpieza
+        return () => {
+            console.log('Limpiando conexión de socket');
+            socketInstance.disconnect();
+            socketInstance.off('connect');
+            socketInstance.off('get_info');
+            socketInstance.off('accept_balance');
+            socketInstance.off('disconnect');
+            socketInstance.off('error');
+            socketInstance.off('connect_error');
+        };
+    }, [email]);
 
 
 
-    useEffect(() => {
-        console.log(socket);
-        console.log(isConnected);
-        if(socket && socket.connected){
-            socket.emit('sent_info',{},(response)=>{
-                console.log(`Respuesta del servidor: ${response}`);
-            });
+    const handleUpdate = () => {
+        console.log("Botón Oprimido");
+        setDialogKey(prevKey => prevKey + 1);
+        setUpdate(true);
 
-            socket.emit('sent_balance',{},(response)=>{
-                console.log(`Respuesta del servidor: ${response}`);
-            });
-        }
-    }, [socket,isConnected]);
+    };
+
+    const handleCloseDialog = () => {
+        console.log("Cerrando diálogo");
+        setUpdate(false);
+    };
 
     return (
         <>
         {nickname ?
+            <>
             <div className="user-info">
                 <div className="icon">
-                    <img className="icon" src={icon} alt="user icon"/>
+                    <button onClick={handleUpdate}>
+                        <img className="icon" src={icon} alt="user icon"/>
+                    </button>
+
                 </div>
                 <div id="Bienvenida">
                     <h1>Hola, {nickname}</h1>
@@ -78,6 +102,8 @@ function UserBar ({email}) {
                     <p>${balance}</p>
                 </div>
             </div>
+            {update && <UserDialog key={dialogKey} toCreate={false} email={email} setUpdate={handleCloseDialog} />}
+            </>
 
             : <div className="user-info"><h2>Usuario No encontrado</h2></div>
         }

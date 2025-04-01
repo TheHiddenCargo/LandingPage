@@ -4,16 +4,8 @@
 
 /*Mobile First*/
 
-/*User Bar*/
-:root{
-    --globalPadding : 15px;
-    --globalSpace: 10px;
-    --color1: #FFFECB;
-    --color2: #DBCBD8;
-    --color3:#101935;
-    --color4: #698996;
 
-}
+
 h2{
     font-family: "Press Start 2P", system-ui;
     font-weight: 600;
@@ -32,17 +24,22 @@ div.user-info div{
     margin-bottom: var(--globalSpace);
 }
 
-
-
 div.user-info div.icon img.icon{
    height: 50px;
     width: auto;
 }
 
-div.user-info div.icon, div.user-info div.icon img.icon{
+div.user-info div.icon, div.user-info div.icon img.icon,
+div.user-info div.icon, div.user-info div.icon button{
     clip-path: circle(50%);
     shape-outside: circle(50%);
 }
+
+div.user-info div.icon, div.user-info div.icon button{
+    background-color: transparent;
+    border: none;
+}
+
 
 #Bienvenida *{
     line-height: 1.2;
@@ -84,127 +81,4 @@ div.user-info div.icon, div.user-info div.icon img.icon{
         margin-right: var(--globalSpace);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-/*User Creation*/
-dialog{
-    padding: var(--globalPadding);
-    width: 80%;
-    background: radial-gradient(circle, var(--color2), var(--color3));
-    border: none;
-    box-shadow: 10px 10px 10px var(--color2);
-
-}
-
-dialog h2{
-    font-size: 25px;
-    color: var(--color4);
-    margin-bottom: var(--globalSpace);
-}
-
-
-
-form input, form div.select-icons{
-    margin-bottom: var(--globalSpace);
-}
-
-
-
-
-div.select-icons {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-}
-
-div.icon-container {
-    flex-basis: 33.33%; /* Esto hará que haya 3 columnas */
-    padding: 5px; /* Espaciado entre imágenes */
-    overflow: hidden;
-    transition: opacity 0.3s ease;
-}
-
-div.icon-container:hover{
-    cursor: crosshair;
-}
-
-div.icon-container:active{
-    opacity: 0.5;
-}
-
-
-div.icon-container img {
-    width: 100%;
-    height: auto;
-    transition: transform 0.3s ease, opacity 0.7s ease;
-}
-
-
-
-div.icon-container img:hover {
-    transform: scale(1.2);
-}
-
-div.icon-container.selected img{
-    opacity: 0.3;
-}
-
-dialog form input{
-    font-size: 15px;
-    font-family: "Ubuntu", sans-serif;
-    font-weight: 300;
-    font-style: normal;
-    padding: 5px;
-
-
-    border-bottom: 2px solid var(--color2);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    background-color: transparent;
-    color: var(--color1);
-}
-
-dialog form input[type="text"]::placeholder{
-    color: var(--color2);
-}
-
-dialog form input[type="submit"]:disabled{
-    cursor: not-allowed;
-}
-
-/*Responsive*/
-
-@media (min-width: 700px){
-    dialog{
-        width: 60%;
-        box-shadow: 20px 20px 20px var(--color2);
-    }
-}
-
-@media (min-width: 1000px){
-    :root{
-        --globalPadding : 20px;
-        --globalSpace: 15px;
-    }
-
-    dialog h2{
-        font-size: 30px;
-    }
-
-    dialog form input{
-        font-size: 20px;
-        padding: 10px;
-    }
-}
-
-
 

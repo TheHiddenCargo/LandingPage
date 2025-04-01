@@ -39,7 +39,7 @@ const Lobby = () => {
 
   const {data, loading, status} = useFetch(
       {
-        url: "https://thehiddencargo1.azure-api.net/creation/users/email/" + email + "/info",
+        url: "https://thehiddencargo1.azure-api.net/creation/users/" + email + "/info",
         method: 'GET',
         headers: {
           'accept': '*/*'
@@ -605,7 +605,7 @@ const Lobby = () => {
                     </div>
                   </div>
               )}
-              {createUser && <UserDialog email={email} currentNickname={userName} updateNickname={setUserName} toCreate={true}/>}
+              {createUser && <UserDialog email={email} toCreate={true}/>}
             </div>
         }
       </>
