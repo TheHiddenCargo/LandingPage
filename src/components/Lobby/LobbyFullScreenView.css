@@ -383,3 +383,74 @@ div {
       flex-direction: column;
     }
   }
+
+
+
+@keyframes playerJoined {
+  from { 
+    transform: translateX(-20px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateX(0); 
+    opacity: 1; 
+  }
+}
+
+
+.users-list .user-card:last-child {
+  animation: playerJoined 0.5s ease-out forwards;
+}
+
+/* Mensaje de espera al anfitrión cuando no eres el host */
+.waiting-host-message {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #aaa;
+  padding: 12px 20px;
+  border-radius: 30px;
+  text-align: center;
+  font-size: 12px;
+  max-width: 280px;
+}
+
+
+.ready-btn:disabled {
+  background-color: #45a049;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+[title] {
+  position: relative;
+}
+
+[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  z-index: 10;
+  font-family: 'Press Start 2P', cursive;
+  margin-bottom: 8px;
+}
+  

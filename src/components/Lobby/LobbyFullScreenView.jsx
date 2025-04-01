@@ -3,26 +3,164 @@ import { X, Users, ChevronLeft, Clock, Award, Shield } from "lucide-react";
 import Partida from "../Partida/Partida.jsx"; 
 import "./LobbyFullScreenView.css";
 
-
 const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [partidaIniciada, setPartidaIniciada] = useState(false);
+  
 
   useEffect(() => {
-    setConnectedUsers([
-      {
-        id: 1,
-        name: lobby.host,
-        isHost: true,
-        isReady: true,
-        avatar: null
-      }
-    ]);
+    const initialUsers = [{
+      id: 1,
+      name: lobby.host,
+      isHost: true,
+      isReady: true,
+      avatar: null
+    }];
+    
+
+    if (lobby.playersList && Array.isArray(lobby.playersList)) {
+      // Filtra para evitar duplicar al anfitrión
+      const otherPlayers = lobby.playersList
+        .filter(player => player !== lobby.host)
+        .map((player, index) => ({
+          id: index + 2, 
+          name: player,
+          isHost: false,
+          isReady: false,
+          avatar: null
+        }));
+      
+      setConnectedUsers([...initialUsers, ...otherPlayers]);
+    } else {
+      setConnectedUsers(initialUsers);
+    }
+    
+  
+    if (lobby.socketConnection) {
+      const socket = lobby.socketConnection;
+      
+      // Escucha el evento de jugador unido
+      socket.on('playerJoined', (playerData) => {
+        console.log('Nuevo jugador unido:', playerData);
+        
+        setConnectedUsers(prevUsers => {
+          // Verifica si el jugador ya está en la lista para evitar duplicados
+          const playerExists = prevUsers.some(user => user.name === playerData.name);
+          if (playerExists) return prevUsers;
+          
+          // Agrega el nuevo jugador a la lista
+          return [...prevUsers, {
+            id: prevUsers.length + 1,
+            name: playerData.name,
+            isHost: playerData.isHost || false,
+            isReady: playerData.isReady || false,
+            avatar: null
+          }];
+        });
+      });
+      
+      // Escucha el evento de jugador listo
+      socket.on('playerReady', (playerData) => {
+        console.log('Jugador listo:', playerData);
+        
+        setConnectedUsers(prevUsers => 
+          prevUsers.map(user => {
+            if (user.name === playerData.name) {
+              return { ...user, isReady: true };
+            }
+            return user;
+          })
+        );
+      });
+
+      // Escucha el evento de jugador desconectado
+      socket.on('playerLeft', (playerData) => {
+        console.log('Jugador desconectado:', playerData);
+        
+        setConnectedUsers(prevUsers => 
+          prevUsers.filter(user => user.name !== playerData.name)
+        );
+      });
+      
+      // Solicita la lista completa de jugadores al conectarse
+      socket.emit('requestPlayersList', { lobbyName: lobby.name });
+      
+      // Escucha la respuesta con la lista completa de jugadores
+      socket.on('playersList', (playersData) => {
+        console.log('Lista completa de jugadores recibida:', playersData);
+        
+        if (Array.isArray(playersData)) {
+          const formattedUsers = playersData.map((player, index) => ({
+            id: index + 1,
+            name: player.name,
+            isHost: player.isHost || player.name === lobby.host,
+            isReady: player.isReady || false,
+            avatar: null
+          }));
+          
+          setConnectedUsers(formattedUsers);
+        }
+      });
+      
+      // Limpia los listeners cuando se desmonte el componente
+      return () => {
+        socket.off('playerJoined');
+        socket.off('playerReady');
+        socket.off('playerLeft');
+        socket.off('playersList');
+      };
+    }
   }, [lobby]);
+
+  // Función para marcar al usuario como listo
+  const handlePlayerReady = () => {
+    if (lobby.socketConnection) {
+      // Emitir evento al servidor para notificar que el jugador está listo
+      lobby.socketConnection.emit('playerReady', { 
+        name: userName, 
+        lobbyName: lobby.name 
+      });
+      
+      
+      setConnectedUsers(prevUsers => 
+        prevUsers.map(user => {
+          if (user.name === userName) {
+            return { ...user, isReady: true };
+          }
+          return user;
+        })
+      );
+    }
+  };
+
+  // Función para iniciar la partida y notificar a todos los jugadores
+  const handleStartGame = () => {
+    if (lobby.socketConnection) {
+      lobby.socketConnection.emit('startGame', { 
+        lobbyName: lobby.name 
+      });
+      setPartidaIniciada(true);
+    } else {
+      setPartidaIniciada(true);
+    }
+  };
 
   if (partidaIniciada) {
     return <Partida onExit={() => setPartidaIniciada(false)} />;
   }
+
+  // Verifica si el usuario actual está listo
+  const isUserReady = connectedUsers.find(user => user.name === userName)?.isReady || false;
+  
+  // Verifica si el usuario actual es el anfitrión
+  const isUserHost = lobby.host === userName;
+
+  // Verifica si todos los usuarios están listos
+  const allUsersReady = connectedUsers.length > 0 && 
+                         connectedUsers.every(user => user.isReady);
+  
+  // Verifica si hay suficientes jugadores para iniciar
+  const enoughPlayers = connectedUsers.length >= 2;
 
   return (
     <div className="lobby-fullscreen">
@@ -112,12 +250,27 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
       </div>
 
       <div className="lobby-actions">
-        <button className="start-game-btn" 
-                onClick={() => setPartidaIniciada(true)}>
-          Iniciar partida
-        </button>
-        <button className="ready-btn">
-          Listo
+        {isUserHost ? (
+          <button 
+            className="start-game-btn" 
+            onClick={handleStartGame}
+            disabled={!allUsersReady || !enoughPlayers}
+            title={!allUsersReady ? "Todos los jugadores deben estar listos" : 
+                  !enoughPlayers ? "Se necesitan al menos 2 jugadores" : ""}
+          >
+            Iniciar partida
+          </button>
+        ) : (
+          <div className="waiting-host-message">
+            Esperando a que el anfitrión inicie la partida
+          </div>
+        )}
+        <button 
+          className="ready-btn" 
+          onClick={handlePlayerReady}
+          disabled={isUserReady}
+        >
+          {isUserReady ? "Listo" : "Marcar como listo"}
         </button>
       </div>
     </div>

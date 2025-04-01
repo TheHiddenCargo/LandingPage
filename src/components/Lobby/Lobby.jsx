@@ -34,6 +34,8 @@ const Lobby = () => {
   const [selectedLobby, setSelectedLobby] = useState(null);
   const [isLoadingLobbies, setIsLoadingLobbies] = useState(false);
   const [loadingError, setLoadingError] = useState(null);
+  const [socket, setSocket] = useState(null);
+  
 
   const {data, loading, status} = useFetch(
       {
@@ -210,32 +212,56 @@ const Lobby = () => {
         playersList: [userName],
         readyPlayers: 0
       };
-
+  
       // Guardar la sala en el estado local
       setLobbies([...lobbies, newLobby]);
-
+  
+      // Establecer conexión de Socket.io
+      const newSocket = io("https://thehiddencargo1.azure-api.net", {
+        path: "/lobbies/socket.io",
+        query: {
+          lobbyName: lobbyName,
+          playerName: userName,
+          isHost: true
+        },
+        extraHeaders: {
+          "Ocp-Apim-Subscription-Key": "b553314cb92447a6bb13871a44b16726"
+        }
+      });
+      
+      // Configurar eventos del socket
+      newSocket.on('connect', () => {
+        console.log('Conectado al servidor de sockets como anfitrión');
+      });
+      
+      newSocket.on('connect_error', (error) => {
+        console.error('Error de conexión con Socket.io:', error);
+      });
+      
+      setSocket(newSocket);
+  
       // Mostrar mensaje de éxito
       setLobbyCreated(true);
-
+  
       // Cerrar el modal
       setShowCreateLobby(false);
-
+  
       // Limpiar los campos del formulario
       setLobbyName("");
       setLobbyPassword("");
       setGameMode("Individual");
       setRounds(1);
       setPlayers(2);
-
+  
       // Después de 3 segundos, ocultar el mensaje de éxito
       setTimeout(() => {
         setLobbyCreated(false);
       }, 3000);
-
+  
       console.log("Nueva sala creada:", newLobby);
-
+  
       // Seleccionar la sala recién creada para mostrar la vista de pantalla completa
-      setSelectedLobby(newLobby);
+      setSelectedLobby({...newLobby, socketConnection: newSocket});
     }
   };
 
@@ -284,8 +310,32 @@ const Lobby = () => {
         
         if (addPlayerResponse.ok) {
           // Successfully joined the lobby
+          
+          // Establecer conexión de Socket.io
+          const newSocket = io("https://thehiddencargo1.azure-api.net", {
+            path: "/lobbies/socket.io",
+            query: {
+              lobbyName: selectedLobbyForJoin.name,
+              playerName: userName,
+              isHost: false
+            },
+            extraHeaders: {
+              "Ocp-Apim-Subscription-Key": "b553314cb92447a6bb13871a44b16726"
+            }
+          });
+          
+          // Configurar eventos del socket
+          newSocket.on('connect', () => {
+            console.log('Conectado al servidor de sockets');
+          });
+          
+          newSocket.on('connect_error', (error) => {
+            console.error('Error de conexión con Socket.io:', error);
+          });
+          
+          setSocket(newSocket);
           setShowPasswordDialog(false);
-          setSelectedLobby(selectedLobbyForJoin);
+          setSelectedLobby({...selectedLobbyForJoin, socketConnection: newSocket});
         } else {
           // Failed to add player
           const errorData = await addPlayerResponse.json();
@@ -309,10 +359,24 @@ const Lobby = () => {
 
   // Handle closing the fullscreen view
   const handleCloseLobbyView = () => {
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+    }
     setSelectedLobby(null);
     // Refresh lobbies when returning from a lobby view
     fetchLobbies();
   };
+
+  // Añade un efecto para limpiar la conexión al desmontar el componente
+  useEffect(() => {
+    // Limpia la conexión del socket al desmontar el componente
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, [socket]);
 
   // Combine local and API lobbies, removing duplicates
   const allLobbies = [...lobbies, ...apiLobbies];
