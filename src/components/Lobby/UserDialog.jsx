@@ -11,7 +11,6 @@ import dragon from "../../assets/gamerIcons/Dragon.png";
 import bear from "../../assets/gamerIcons/bear.png";
 import PropTypes from "prop-types";
 import "../../styles/UserDialog.css"
-import io from "socket.io-client";
 
 
 
@@ -21,13 +20,17 @@ const UserDialog = ({toCreate,email,onClose}) => {
     const[title, setTitle] = useState(null);
     const[submitButton, setSubmitButton]= useState(null);
     const [createUser, setCreateUser] = useState(false);
+    const [updateUser, setUpdateUser] = useState(false);
     const dialogRef = useRef(null);
-    const socket = useRef(null);
+    const [errorNickname, setErrorNickname] = useState(null);
+    const [errorIcon, setErrorIcon] = useState(null);
+
+
 
 
     /*Fetch to register User*/
     const {loading:loadingCreate, status:statusCreate, error: errorCreate} = useFetch({
-        url: 'https://thehiddencargo1.azure-api.net/creation//users/register',
+        url: 'https://thehiddencargo1.azure-api.net/creation/users/register',
         method: 'POST',
         body: {
             email: email,
@@ -46,6 +49,30 @@ const UserDialog = ({toCreate,email,onClose}) => {
            'accept': '*/*'
         }
     },[email],!toCreate && email);
+
+    /*Fetch para actualizar NickName*/
+
+    const {loading: loadingNickname, status:statusNickname} = useFetch({
+        url: 'https://thehiddencargo1.azure-api.net/creation/polling/users/update/nickname',
+        method: 'POST',
+        body: {
+            email: email,
+            newNickname : newNickname
+        }
+    },[updateUser],updateUser);
+
+    /*Fetch para actualizar icono*/
+
+    const {loading: loadingIcon, status:statusIcon} = useFetch({
+        url: 'https://thehiddencargo1.azure-api.net/creation/polling/users/update/photo',
+        method: 'POST',
+        body: {
+            email: email,
+            photo : icon
+        }
+    },[updateUser],updateUser);
+
+
 
     /*Icons definition*/
     const icons = [
@@ -68,24 +95,9 @@ const UserDialog = ({toCreate,email,onClose}) => {
         }
     };
 
-    const handleUpdate = () =>{
-        socket.current.emit('update_nickname', {
-            newNickname : newNickname
-        }, (response) => {
-            console.log(`Respuesta del servidor para update_nickname: ${response}`);
-        });
-
-        socket.current.emit('update_photo',{
-            newPhoto: icon
-        },(response) =>{
-            console.log(`Respuesta del servidor para update_photo: ${response}`);
-        });
-        handleClose();
-    };
-
     const handleSubmit = () => {
         if(toCreate) setCreateUser(true);
-        else handleUpdate();
+        else setUpdateUser(true);
     };
 
     const handleKeyDown = (e) => {
@@ -98,30 +110,11 @@ const UserDialog = ({toCreate,email,onClose}) => {
 
     useEffect(() => {
         if (dialogRef) {
-            socket.current =  io("http://localhost:8085", {
-                query: { email: email }
-            });
-            socket.current.on('connect', () => {
-                console.log(`userDialog connected ${email}`);
 
-            });
-
-            socket.current.on('disconnect', () => {
-                console.log(`userDialog disconnected ${email}`);
-            });
-
-            socket.current.on('error', (error) => {
-                console.error("Socket.IO error:", error);
-            });
-
-            socket.current.on('connect_error', (error) => {
-                console.error("Socket.IO connection error:", error);
-            });
             if(toCreate){
                 setTitle("Creación de Usuario");
                 setSubmitButton("Crear");
             }else{
-
                 setSubmitButton("Actualizar");
 
             }
@@ -135,38 +128,27 @@ const UserDialog = ({toCreate,email,onClose}) => {
                 if (dialogRef.current) {
                     dialogRef.current.removeEventListener('cancel', handleCancel);
                 }
-
-                console.log('Limpiando conexión de socket');
-                socket.current.disconnect();
-                socket.current.off('connect');
-                socket.current.off('disconnect');
-                socket.current.off('error');
-                socket.current.off('connect_error');
-
             };
         }
 
     }, []);
 
+    /*Handle GET*/
+
     useEffect(() => {
         if(dataUser && statusUser === 200){
             setNewNickname(dataUser["nickname"]);
             setIcon(dataUser["photo"]);
-            setTitle(`Actualizando a: ${newNickname}`);
+            setTitle(`Actualizando a: ${dataUser["nickname"]}`);
         }
     }, [dataUser,statusUser]);
+
     /*Handle Create*/
     useEffect(() => {
         console.log("Creating")
         console.log(loadingCreate,statusCreate,createUser);
         if(loadingCreate === false && createUser && statusCreate === 201){
-            socket.current.emit('sent_info', {}, (response) => {
-                console.log(`Respuesta del servidor para sent_info: ${response}`);
-            });
-
-            socket.current.emit('sent_balance', {}, (response) => {
-                console.log(`Respuesta del servidor para sent_balance: ${response}`);
-            });
+            setCreateUser(false);
             handleClose();
         }
         if(loadingCreate === false && createUser && statusCreate === 400) {
@@ -176,7 +158,24 @@ const UserDialog = ({toCreate,email,onClose}) => {
         }
     }, [loadingCreate,statusCreate]);
 
-    /*Handle GET*/
+
+    /*Handle Update*/
+
+    useEffect(() => {
+        console.log("Procesando actualizacion");
+        console.log(newNickname,icon);
+        console.log(loadingNickname,loadingIcon,statusIcon,statusNickname);
+        if(!loadingIcon && !loadingNickname && statusNickname === 200 && statusIcon === 200){
+            setUpdateUser(false);
+            handleClose();
+        }
+        else{
+            setErrorNickname(`Error nickname: ${statusNickname}`);
+            setErrorIcon(`Error Icon: ${statusIcon}`);
+        }
+    }, [loadingNickname,loadingIcon,statusIcon,statusNickname]);
+
+
 
 
 
@@ -209,6 +208,9 @@ const UserDialog = ({toCreate,email,onClose}) => {
                     <button disabled={!icon || !newNickname} onClick={handleSubmit}>{submitButton}</button>
 
                     {!toCreate && <button onClick={handleClose}>Cancel</button>}
+                    {!toCreate && statusIcon && errorIcon !==null && <h2>{errorIcon}</h2>}
+                    {!toCreate && statusNickname &&errorNickname !==null && <h2>{errorNickname}</h2>}
+
                 </div>
             </div>
             {statusCreate !== 201 && <h2>{errorCreate}</h2>}
