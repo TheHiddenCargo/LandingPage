@@ -18,7 +18,7 @@
     "react-router-dom": "^6.14.1",
     "react-scripts": "5.0.1",
     "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1",
+    "socket.io-client": "^2.3.0",
     "sockjs-client": "^1.6.1",
     "swiper": "^11.2.5",
     "url": "^0.11.4",

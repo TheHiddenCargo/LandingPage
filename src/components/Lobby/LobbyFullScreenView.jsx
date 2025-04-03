@@ -1,3 +1,4 @@
+//src/components/lobby/lobbyFullScreenView
 import React, { useState, useEffect } from "react";
 import { X, Users, ChevronLeft, Clock, Award, Shield } from "lucide-react";
 import Partida from "../Partida/Partida.jsx"; 

@@ -1,3 +1,4 @@
+//src/components/lobby/lobby.jsx
 import React, {useEffect, useState, useCallback} from "react";
 import { Home, Settings, User, LogOut, Plus, X, RefreshCw } from "lucide-react";
 import UserBar from "./UserBar";
@@ -281,7 +282,7 @@ const Lobby = () => {
     setPasswordError(null);
     
     try {
-      // Step 1: Verify the password
+      // Primero, verificar la contraseña
       const verifyResponse = await fetch(
         `https://thehiddencargo1.azure-api.net/lobbies/lobbies/${selectedLobbyForJoin.name}/verificar`, 
         {
@@ -295,66 +296,78 @@ const Lobby = () => {
         }
       );
       
+      // Verificar la respuesta de la contraseña
       if (verifyResponse.status === 200) {
-        // Password is correct, now add the player to the lobby
-        const addPlayerResponse = await fetch(
-          `https://thehiddencargo1.azure-api.net/lobbies/lobbies/${selectedLobbyForJoin.name}/agregarJugador?nickname=${userName}`,
-          {
-            method: 'PUT',
-            headers: {
-              'Ocp-Apim-Subscription-Key': 'b553314cb92447a6bb13871a44b16726',
-              'accept': '*/*'
-            }
+        // Establecer conexión de Socket.io
+        const newSocket = io("http://localhost:443", {
+          path: "/socket.io",
+          transports: ['websocket', 'polling'],
+          query: {
+            lobbyName: selectedLobbyForJoin.name,
+            playerName: userName,
+            isHost: false
           }
-        );
+        });
         
-        if (addPlayerResponse.ok) {
-          // Successfully joined the lobby
+        // Configurar eventos de conexión
+        newSocket.on('connect', () => {
+          console.log('Conectado al servidor de sockets');
           
-          // Establecer conexión de Socket.io
-          const newSocket = io("https://thehiddencargo1.azure-api.net", {
-            path: "/lobbies/socket.io",
-            query: {
-              lobbyName: selectedLobbyForJoin.name,
-              playerName: userName,
-              isHost: false
-            },
-            extraHeaders: {
-              "Ocp-Apim-Subscription-Key": "b553314cb92447a6bb13871a44b16726"
-            }
+          // Emitir evento para unirse al lobby
+          newSocket.emit('joinLobby', {
+            lobbyName: selectedLobbyForJoin.name,
+            nickname: userName,
           });
+        });
+  
+        // Manejar éxito al unirse al lobby
+        newSocket.on('lobbyJoined', (lobbyData) => {
+          console.log('Unido al lobby:', lobbyData);
           
-          // Configurar eventos del socket
-          newSocket.on('connect', () => {
-            console.log('Conectado al servidor de sockets');
-          });
+          // Crear nuevo objeto de lobby con conexión de socket
+          const updatedLobby = {
+            ...selectedLobbyForJoin,
+            socketConnection: newSocket
+          };
           
-          newSocket.on('connect_error', (error) => {
-            console.error('Error de conexión con Socket.io:', error);
-          });
-          
+          // Actualizar estados
           setSocket(newSocket);
           setShowPasswordDialog(false);
-          setSelectedLobby({...selectedLobbyForJoin, socketConnection: newSocket});
-        } else {
-          // Failed to add player
-          const errorData = await addPlayerResponse.json();
-          setPasswordError(`Error al unirse a la sala: ${errorData.message || addPlayerResponse.status}`);
-        }
+          setSelectedLobby(updatedLobby);
+          setVerifyingPassword(false);
+        });
+  
+        // Manejar errores de conexión
+        newSocket.on('connect_error', (error) => {
+          console.error('Error de conexión:', error);
+          setPasswordError(`Error de conexión: ${error.message}`);
+          setVerifyingPassword(false);
+        });
+  
+        // Manejar errores específicos de unión al lobby
+        newSocket.on('joinError', (errorData) => {
+          setPasswordError(errorData.message || 'Error al unirse al lobby');
+          setVerifyingPassword(false);
+          
+          // Desconectar socket en caso de error
+          newSocket.disconnect();
+        });
       } else if (verifyResponse.status === 401) {
-        // Incorrect password
+        // Contraseña incorrecta
         setPasswordError("Contraseña incorrecta");
+        setVerifyingPassword(false);
       } else {
-        // Other error
+        // Otro error
         const errorData = await verifyResponse.json();
         setPasswordError(`Error: ${errorData.message || verifyResponse.status}`);
+        setVerifyingPassword(false);
       }
     } catch (error) {
       console.error("Error joining lobby:", error);
       setPasswordError(`Error de conexión: ${error.message}`);
-    } finally {
       setVerifyingPassword(false);
     }
+
   };
 
   // Handle closing the fullscreen view
@@ -500,44 +513,44 @@ const Lobby = () => {
 
               {/* Modal for lobby password verification */}
               {showPasswordDialog && (
-                <div className="overlay">
-                  <div className="password-dialog">
-                    <button
-                      className="close-btn"
-                      onClick={() => setShowPasswordDialog(false)}
-                    >
-                      <X size={22}/>
-                    </button>
-                    <h2 className="modal-title">Unirse a {selectedLobbyForJoin?.name}</h2>
-                    <p className="modal-description">
-                      Ingresa la contraseña para unirte a esta sala.
-                    </p>
+              <div className="overlay">
+                <div className="password-dialog">
+                  <button
+                    className="close-btn"
+                    onClick={() => setShowPasswordDialog(false)}
+                  >
+                    <X size={22}/>
+                  </button>
+                  <h2 className="modal-title">Unirse a {selectedLobbyForJoin?.name}</h2>
+                  <p className="modal-description">
+                    Ingresa la contraseña para unirte a esta sala.
+                  </p>
 
-                    <label>Contraseña</label>
-                    <input
-                      type="password"
-                      className="lobby-input"
-                      value={passwordInput}
-                      onChange={(e) => setPasswordInput(e.target.value)}
-                      placeholder="Ingresa la contraseña"
-                    />
-                    
-                    {passwordError && (
-                      <div className="password-error">
-                        {passwordError}
-                      </div>
-                    )}
+                  <label>Contraseña</label>
+                  <input
+                    type="password"
+                    className="lobby-input"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    placeholder="Ingresa la contraseña"
+                  />
+        
+                  {passwordError && (
+                    <div className="password-error">
+                      {passwordError}
+                    </div>
+                  )}
 
-                    <button 
-                      className="confirm-btn" 
-                      onClick={handleVerifyPassword}
-                      disabled={verifyingPassword}
-                    >
-                      {verifyingPassword ? "Verificando..." : "Unirse"}
-                    </button>
-                  </div>
+                  <button 
+                    className="confirm-btn" 
+                    onClick={handleVerifyPassword}
+                    disabled={verifyingPassword}
+                  >
+                    {verifyingPassword ? "Verificando..." : "Unirse"}
+                  </button>
                 </div>
-              )}
+              </div>
+            )}
 
               {showCreateLobby && (
                   <div className="overlay">
