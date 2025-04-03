@@ -173,8 +173,6 @@
   margin-left: 150px;
 }
 
-
-
 .create-lobby-btn {
   background-color: #4e8cf7;
   border: none;
@@ -430,6 +428,14 @@
   color: #e5e7eb;
 }
 
+label {
+  display: block;
+  text-align: center;
+  font-weight: bold;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
 /* Campo de entrada */
 .lobby-input {
   width: 90%;
@@ -443,6 +449,8 @@
   margin-bottom: 20px;
   text-align: center;
   transition: 0.3s;
+  margin: 0 auto; /* Centra horizontalmente */
+  width: 100%;
 }
 
 .lobby-input::placeholder {
@@ -518,6 +526,21 @@
 .lobbies-section {
   margin: 20px 0;
   padding: 0 20px;
+  margin-left: 130px; 
+}
+
+.lobbies-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 20px;
+  margin-left: -150px; 
+  margin-bottom: 20px;
+}
+
+.loading-lobbies {
+  margin-left: 900px; 
 }
 
 .lobbies-list {
@@ -563,6 +586,7 @@
   margin-top: 10px;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .join-btn:hover {
