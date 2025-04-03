@@ -8,11 +8,41 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [partidaIniciada, setPartidaIniciada] = useState(false);
   
+  // Handle closing the fullscreen view and properly leaving the lobby
+  const handleCloseLobbyView = () => {
+    if (lobby.socketConnection) {
+      // Enviar explícitamente un evento de salida antes de desconectar
+      console.log(`Enviando evento de salida para usuario: ${userName} del lobby: ${lobby.name}`);
+      
+      try {
+        // Emitir evento leaveLobby para notificar al servidor que el jugador está saliendo voluntariamente
+        lobby.socketConnection.emit('leaveLobby', {
+          lobbyName: lobby.name,
+          nickname: userName
+        });
+        
+        // Dar tiempo para que se procese el evento antes de desconectar
+        setTimeout(() => {
+          lobby.socketConnection.disconnect();
+          onClose();
+        }, 300);
+      } catch (error) {
+        console.error("Error al salir del lobby:", error);
+        // Aún así, desconectar y cerrar en caso de error
+        lobby.socketConnection.disconnect();
+        onClose();
+      }
+    } else {
+      // Si no hay conexión socket, simplemente cerrar
+      onClose();
+    }
+  };
+  
 
   useEffect(() => {
     const initialUsers = [{
       id: 1,
-      name: lobby.host,
+      name: lobby.host || "Anfitrión",  // Valor por defecto por si lobby.host es undefined
       isHost: true,
       isReady: true,
       avatar: null
@@ -20,12 +50,12 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
     
 
     if (lobby.playersList && Array.isArray(lobby.playersList)) {
-      // Filtra para evitar duplicar al anfitrión
+      // Filtra para evitar duplicar al anfitrión y asegúrate de que los nombres no sean undefined
       const otherPlayers = lobby.playersList
-        .filter(player => player !== lobby.host)
+        .filter(player => player && player !== lobby.host)  // Verifica que player no sea null o undefined
         .map((player, index) => ({
           id: index + 2, 
-          name: player,
+          name: player || `Jugador ${index + 2}`,  // Valor por defecto
           isHost: false,
           isReady: false,
           avatar: null
@@ -45,14 +75,17 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
         console.log('Nuevo jugador unido:', playerData);
         
         setConnectedUsers(prevUsers => {
+          // Verifica si hay un nombre válido (diferentes propiedades posibles)
+          const playerName = playerData.nickname || playerData.name || `Jugador ${prevUsers.length + 1}`;
+          
           // Verifica si el jugador ya está en la lista para evitar duplicados
-          const playerExists = prevUsers.some(user => user.name === playerData.name);
+          const playerExists = prevUsers.some(user => user.name === playerName);
           if (playerExists) return prevUsers;
           
           // Agrega el nuevo jugador a la lista
           return [...prevUsers, {
             id: prevUsers.length + 1,
-            name: playerData.name,
+            name: playerName,
             isHost: playerData.isHost || false,
             isReady: playerData.isReady || false,
             avatar: null
@@ -62,25 +95,63 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
       
       // Escucha el evento de jugador listo
       socket.on('playerReady', (playerData) => {
-        console.log('Jugador listo:', playerData);
+        console.log('Jugador listo recibido del servidor:', playerData);
         
-        setConnectedUsers(prevUsers => 
-          prevUsers.map(user => {
-            if (user.name === playerData.name) {
+        // Verifica si PlayerData puede tener diferentes estructuras
+        if (!playerData) {
+          console.error('Datos de jugador inválidos:', playerData);
+          return;
+        }
+        
+        // El servidor puede enviar nickname o name
+        const playerName = playerData.nickname || playerData.name;
+        
+        if (!playerName) {
+          console.error('Nombre de jugador no encontrado en datos:', playerData);
+          return;
+        }
+        
+        console.log(`Actualizando estado: Marcando a ${playerName} como listo`);
+        
+        setConnectedUsers(prevUsers => {
+          const updatedUsers = prevUsers.map(user => {
+            if (user.name === playerName) {
+              console.log(`Usuario ${user.name} encontrado y marcado como listo`);
               return { ...user, isReady: true };
             }
             return user;
-          })
-        );
+          });
+          
+          console.log("Lista actualizada de usuarios:", updatedUsers);
+          return updatedUsers;
+        });
       });
 
       // Escucha el evento de jugador desconectado
       socket.on('playerLeft', (playerData) => {
         console.log('Jugador desconectado:', playerData);
         
+        if (!playerData) {
+          console.error('Datos de jugador inválidos:', playerData);
+          return;
+        }
+        
+        // El servidor puede enviar nickname o name
+        const playerName = playerData.nickname || playerData.name;
+        
+        if (!playerName) {
+          console.error('Nombre de jugador no encontrado en datos:', playerData);
+          return;
+        }
+        
         setConnectedUsers(prevUsers => 
-          prevUsers.filter(user => user.name !== playerData.name)
+          prevUsers.filter(user => user.name !== playerName)
         );
+      });
+      
+      // Notificar cuando todos los jugadores estén listos
+      socket.on('allPlayersReady', (lobbyName) => {
+        console.log(`Todos los jugadores están listos en el lobby: ${lobbyName}`);
       });
       
       // Solicita la lista completa de jugadores al conectarse
@@ -93,8 +164,8 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
         if (Array.isArray(playersData)) {
           const formattedUsers = playersData.map((player, index) => ({
             id: index + 1,
-            name: player.name,
-            isHost: player.isHost || player.name === lobby.host,
+            name: player.nickname || player.name || `Jugador ${index + 1}`,
+            isHost: player.isHost || (player.nickname === lobby.host) || (player.name === lobby.host),
             isReady: player.isReady || false,
             avatar: null
           }));
@@ -103,26 +174,39 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
         }
       });
       
+      // Escucha actualizaciones generales del lobby
+      socket.on('lobbyUpdated', (updatedLobby) => {
+        console.log('Lobby actualizado:', updatedLobby);
+        // Aquí podrías actualizar más información si es necesario
+      });
+      
       // Limpia los listeners cuando se desmonte el componente
       return () => {
         socket.off('playerJoined');
         socket.off('playerReady');
         socket.off('playerLeft');
         socket.off('playersList');
+        socket.off('allPlayersReady');
+        socket.off('lobbyUpdated');
       };
     }
   }, [lobby]);
 
   // Función para marcar al usuario como listo
   const handlePlayerReady = () => {
-    if (lobby.socketConnection) {
+    if (lobby.socketConnection && userName) {
+      console.log("Enviando evento playerReady al servidor con:", {
+        nickname: userName,  // Cambiado de 'name' a 'nickname' para coincidir con el backend
+        lobbyName: lobby.name
+      });
+      
       // Emitir evento al servidor para notificar que el jugador está listo
       lobby.socketConnection.emit('playerReady', { 
-        name: userName, 
+        nickname: userName,  // Cambiado de 'name' a 'nickname' para coincidir con el backend
         lobbyName: lobby.name 
       });
       
-      
+      // Actualizar UI localmente
       setConnectedUsers(prevUsers => 
         prevUsers.map(user => {
           if (user.name === userName) {
@@ -131,6 +215,11 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
           return user;
         })
       );
+    } else {
+      console.error("No se puede marcar como listo: ", {
+        socketConnection: !!lobby.socketConnection,
+        userName
+      });
     }
   };
 
@@ -166,12 +255,12 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
   return (
     <div className="lobby-fullscreen">
       <div className="lobby-fullscreen-header">
-        <button className="back-button" onClick={onClose}>
+        <button className="back-button" onClick={handleCloseLobbyView}>
           <ChevronLeft size={24} />
           <span>Volver</span>
         </button>
-        <h1>{lobby.name}</h1>
-        <button className="exit-button" onClick={onClose}>
+        <h1>{lobby.name || "Sala de juego"}</h1>
+        <button className="exit-button" onClick={handleCloseLobbyView}>
           <X size={24} />
           <span>Salir</span>
         </button>
@@ -183,19 +272,19 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
             <h2>Información de la sala</h2>
             <div className="lobby-info-item">
               <Clock size={20} />
-              <span>Creado: {new Date(lobby.createdAt).toLocaleString()}</span>
+              <span>Creado: {new Date(lobby.createdAt || Date.now()).toLocaleString()}</span>
             </div>
             <div className="lobby-info-item">
               <Award size={20} />
-              <span>Modo: {lobby.gameMode}</span>
+              <span>Modo: {lobby.gameMode || "Estándar"}</span>
             </div>
             <div className="lobby-info-item">
               <Shield size={20} />
-              <span>Rondas: {lobby.rounds}</span>
+              <span>Rondas: {lobby.rounds || 1}</span>
             </div>
             <div className="lobby-info-item">
               <Users size={20} />
-              <span>Jugadores: {connectedUsers.length}/{lobby.players}</span>
+              <span>Jugadores: {connectedUsers.length}/{lobby.players || 4}</span>
             </div>
           </div>
 
@@ -209,22 +298,23 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
         </div>
 
         <div className="connected-users-panel">
-          <h2>Jugadores conectados ({connectedUsers.length}/{lobby.players})</h2>
+          <h2>Jugadores conectados ({connectedUsers.length}/{lobby.players || 4})</h2>
           <div className="users-list">
             {connectedUsers.map(user => (
               <div key={user.id} className="user-card">
                 <div className="user-avatar">
                   {!user.avatar ? (
                     <div className="default-avatar">
-                      {user.name.charAt(0).toUpperCase()}
+                      {/* Verificar que user.name existe antes de usar charAt */}
+                      {user.name ? user.name.charAt(0).toUpperCase() : '?'}
                     </div>
                   ) : (
-                    <img src={user.avatar} alt={user.name} />
+                    <img src={user.avatar} alt={user.name || "Usuario"} />
                   )}
                 </div>
                 <div className="user-info">
                   <div className="user-name">
-                    {user.name} {user.isHost && <span className="host-badge">Anfitrión</span>}
+                    {user.name || "Usuario"} {user.isHost && <span className="host-badge">Anfitrión</span>}
                   </div>
                   <div className="user-status">
                     {user.isReady ? (
@@ -238,7 +328,7 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
             ))}
 
             {/* Placeholder spots for remaining players */}
-            {Array.from({ length: lobby.players - connectedUsers.length }).map((_, index) => (
+            {Array.from({ length: Math.max(0, (lobby.players || 4) - connectedUsers.length) }).map((_, index) => (
               <div key={`empty-${index}`} className="user-card empty">
                 <div className="default-avatar empty">?</div>
                 <div className="user-info">
