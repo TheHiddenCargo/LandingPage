@@ -53,13 +53,14 @@ button.game{
 }
 
 .logo {
-  width: 500px; 
+  display: block;
+  width: 500px;
   height: auto;
-  margin-top: 20px;
-  margin-bottom: 20px; 
-  margin-left: 150px;
-  animation: pulse 2s infinite ease-in-out; 
+  margin: 20px auto 20px 370px; /* Ajusta el valor para moverlo más a la derecha */
+  animation: pulse 2s infinite ease-in-out;
   cursor: pointer;
+  position: relative;
+  top: 120px; /* Aumenta el valor para bajarlo más */
 }
 
 
