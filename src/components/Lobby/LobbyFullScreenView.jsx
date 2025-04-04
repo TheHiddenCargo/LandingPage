@@ -1,4 +1,3 @@
-//src/components/lobby/lobbyFullScreenView
 import React, { useState, useEffect } from "react";
 import { X, Users, ChevronLeft, Clock, Award, Shield } from "lucide-react";
 import Partida from "../Partida/Partida.jsx"; 
@@ -44,7 +43,7 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
       id: 1,
       name: lobby.host || "Anfitrión",  // Valor por defecto por si lobby.host es undefined
       isHost: true,
-      isReady: true,
+      isReady: false,
       avatar: null
     }];
     
@@ -180,6 +179,12 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
         // Aquí podrías actualizar más información si es necesario
       });
       
+      // Escuchar el evento gameStarted para cambiar a la pantalla de partida
+      socket.on('gameStarted', (gameData) => {
+        console.log('Juego comenzado, cambiando a pantalla de partida:', gameData);
+        setPartidaIniciada(true);
+      });
+      
       // Limpia los listeners cuando se desmonte el componente
       return () => {
         socket.off('playerJoined');
@@ -188,55 +193,82 @@ const LobbyFullScreenView = ({ lobby, onClose, userName }) => {
         socket.off('playersList');
         socket.off('allPlayersReady');
         socket.off('lobbyUpdated');
+        socket.off('gameStarted');
       };
     }
   }, [lobby]);
 
   // Función para marcar al usuario como listo
-  const handlePlayerReady = () => {
-    if (lobby.socketConnection && userName) {
-      console.log("Enviando evento playerReady al servidor con:", {
-        nickname: userName,  // Cambiado de 'name' a 'nickname' para coincidir con el backend
-        lobbyName: lobby.name
-      });
+  // Actualización del método handlePlayerReady en LobbyFullScreenView.jsx
+
+const handlePlayerReady = () => {
+  if (lobby.socketConnection && userName) {
+    console.log("Enviando evento playerReady al servidor con:", {
+      nickname: userName,
+      lobbyName: lobby.name
+    });
+    
+    // Emitir evento al servidor para notificar que el jugador está listo
+    lobby.socketConnection.emit('playerReady', { 
+      nickname: userName,
+      lobbyName: lobby.name 
+    }, (response) => {
+      // Callback para procesar la respuesta (acknowledgment)
+      console.log("Respuesta del servidor al marcar como listo:", response);
       
-      // Emitir evento al servidor para notificar que el jugador está listo
-      lobby.socketConnection.emit('playerReady', { 
-        nickname: userName,  // Cambiado de 'name' a 'nickname' para coincidir con el backend
-        lobbyName: lobby.name 
-      });
-      
-      // Actualizar UI localmente
-      setConnectedUsers(prevUsers => 
-        prevUsers.map(user => {
-          if (user.name === userName) {
-            return { ...user, isReady: true };
-          }
-          return user;
-        })
-      );
-    } else {
-      console.error("No se puede marcar como listo: ", {
-        socketConnection: !!lobby.socketConnection,
-        userName
-      });
-    }
-  };
+      if (response && response.startsWith("Error")) {
+        // Mostrar error si ocurrió algún problema
+        console.error("Error al marcar como listo:", response);
+        alert("No se pudo marcar como listo: " + response);
+      } else {
+        // Actualizar UI localmente solo si el servidor confirma
+        setConnectedUsers(prevUsers => 
+          prevUsers.map(user => {
+            if (user.name === userName) {
+              return { ...user, isReady: true };
+            }
+            return user;
+          })
+        );
+      }
+    });
+  } else {
+    console.error("No se puede marcar como listo: ", {
+      socketConnection: !!lobby.socketConnection,
+      userName
+    });
+    
+    // Mostrar mensaje de error al usuario
+    alert("No se puede marcar como listo. Comprueba tu conexión.");
+  }
+};
 
   // Función para iniciar la partida y notificar a todos los jugadores
   const handleStartGame = () => {
     if (lobby.socketConnection) {
+      console.log("Enviando evento startGame al servidor para iniciar la partida en lobby:", lobby.name);
+      
+      // Emitir evento al servidor para iniciar la partida
       lobby.socketConnection.emit('startGame', { 
         lobbyName: lobby.name 
       });
-      setPartidaIniciada(true);
+      
+      // La transición a la pantalla de partida se hará al recibir el evento gameStarted
     } else {
-      setPartidaIniciada(true);
+      console.error("No hay conexión socket para iniciar la partida");
     }
   };
 
+  // Si la partida ya está iniciada, mostrar el componente Partida
   if (partidaIniciada) {
-    return <Partida onExit={() => setPartidaIniciada(false)} />;
+    return (
+      <Partida 
+        onExit={() => setPartidaIniciada(false)} 
+        socketConnection={lobby.socketConnection}
+        lobbyData={lobby}
+        userName={userName}
+      />
+    );
   }
 
   // Verifica si el usuario actual está listo
