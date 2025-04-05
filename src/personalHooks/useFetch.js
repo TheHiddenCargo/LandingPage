@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 
-export function useFetch(config, states, condition){
+export function useFetch(config, states = [], condition = true){
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -12,6 +12,9 @@ export function useFetch(config, states, condition){
         headers = {}, // Headers por defecto vacíos
         body = null // Body opcional
     } = config;
+    
+    // Asegurar que states sea siempre un array válido
+    const depsArray = Array.isArray(states) ? states : [];
     
     useEffect(() => {
         if(condition){
@@ -44,7 +47,7 @@ export function useFetch(config, states, condition){
                     .finally(()=>setLoading(false));
                 return () => abortController.abort();
         }
-    }, [url, method, headers, body, condition, ...(Array.isArray(states) ? states : [])]);
+    }, [url, method, headers, body, condition, depsArray]);
 
 
     const handleCancelRequest = () =>{
