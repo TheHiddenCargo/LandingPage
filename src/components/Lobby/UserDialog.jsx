@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState,useCallback} from "react";
 import {useFetch} from "../../personalHooks/useFetch";
 import blueGuy from "../../assets/gamerIcons/blueGuy.png";
 import greenGuy from "../../assets/gamerIcons/greenGuy.png";
@@ -88,13 +88,12 @@ const UserDialog = ({toCreate,email,onClose}) => {
         bear
     ];
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         if (dialogRef.current) {
             dialogRef.current.close();
             if (!toCreate && onClose) onClose();
-
         }
-    };
+    }, [toCreate, onClose]);
 
     const handleSubmit = () => {
         if(toCreate) setCreateUser(true);
