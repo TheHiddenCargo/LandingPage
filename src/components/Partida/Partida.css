@@ -366,3 +366,243 @@
     align-self: center;
   }
 }
+/* Agregar estos estilos a tu archivo Partida.css */
+
+/* Estilos para notificaciones */
+.notification {
+  position: relative;
+  padding: 12px 16px;
+  margin: 10px 0;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: fadeIn 0.3s ease-in-out;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.notification button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0 8px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos para el contenedor de resultados */
+.results-display {
+  background-color: rgba(30, 40, 70, 0.9);
+  border-radius: 8px;
+  padding: 20px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.container-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.container-image {
+  width: 200px;
+  height: 200px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.container-image.normal {
+  background: linear-gradient(135deg, #5d6e95, #424f6f);
+}
+
+.container-image.raro {
+  background: linear-gradient(135deg, #5a9ae6, #3b6fa9);
+}
+
+.container-image.épico {
+  background: linear-gradient(135deg, #a46ee6, #7749b9);
+}
+
+.container-image.legendario {
+  background: linear-gradient(135deg, #f0c95f, #c7952a);
+}
+
+.container-content {
+  padding: 15px;
+  text-align: center;
+  color: white;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.result-title {
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+.objects-list {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.objects-list h4 {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.objects-list ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.objects-list li {
+  margin: 5px 0;
+  padding: 3px 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+/* Estilos para el sistema de "listo" */
+.ready-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.ready-status {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.ready-count {
+  margin-bottom: 15px;
+  color: #aaa;
+}
+
+.ready-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 15px;
+  max-width: 400px;
+}
+
+.ready-player {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+.ready-player.ready {
+  background-color: rgba(75, 181, 67, 0.3);
+  border: 1px solid #4bb543;
+}
+
+.ready-player.not-ready {
+  background-color: rgba(128, 128, 128, 0.2);
+  border: 1px solid #aaa;
+}
+
+.boton-listo {
+  background-color: #4bb543;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.boton-listo:hover:not(:disabled) {
+  background-color: #3a9932;
+}
+
+.boton-listo:disabled {
+  background-color: #4bb543;
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* Indicador de jugador listo en la lista de jugadores */
+.player-card.player-ready {
+  border: 2px solid #4bb543;
+  box-shadow: 0 0 8px rgba(75, 181, 67, 0.5);
+}
+
+.ready-check {
+  color: #4bb543;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+/* Animaciones para la revelación del contenedor */
+@keyframes reveal {
+  0% { transform: scale(0.9); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.container-result {
+  animation: reveal 0.6s ease-out;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 768px) {
+  .results-display {
+    padding: 15px;
+  }
+  
+  .container-image {
+    width: 180px;
+    height: 180px;
+  }
+  
+  .ready-players {
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container-image {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .container-content {
+    padding: 10px;
+    font-size: 0.9em;
+  }
+  
+  .ready-players {
+    gap: 5px;
+  }
+  
+  .ready-player {
+    padding: 3px 6px;
+    font-size: 0.8em;
+  }
+}

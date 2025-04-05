@@ -56,11 +56,11 @@ button.game{
   display: block;
   width: 500px;
   height: auto;
-  margin: 20px auto 20px 370px; /* Ajusta el valor para moverlo más a la derecha */
+  margin: 2px auto 20px 190px; /* Ajusta el valor para moverlo más a la derecha */
   animation: pulse 2s infinite ease-in-out;
   cursor: pointer;
   position: relative;
-  top: 120px; /* Aumenta el valor para bajarlo más */
+  top: 1px; /* Aumenta el valor para bajarlo más */
 }
 
 
