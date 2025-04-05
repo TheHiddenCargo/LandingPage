@@ -1,17 +1,18 @@
-import {useState,useEffect} from "react";
+import {useState, useEffect} from "react";
 
-export function useFetch(config,states,condition){
+export function useFetch(config, states, condition){
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [controller, setController] =useState(null);
-    const [status,setStatus] = useState(null);
+    const [controller, setController] = useState(null);
+    const [status, setStatus] = useState(null);
     const {
         url,
         method,
         headers = {}, // Headers por defecto vacíos
         body = null // Body opcional
     } = config;
+    
     useEffect(() => {
         if(condition){
                 const abortController = new AbortController();
@@ -32,7 +33,7 @@ export function useFetch(config,states,condition){
                     })
                     .then((response) =>{
                         console.log(url);
-                         setStatus(response.status);
+                        setStatus(response.status);
                         return response.json()
                     })
                     .then((data) => setData(data))
@@ -43,7 +44,7 @@ export function useFetch(config,states,condition){
                     .finally(()=>setLoading(false));
                 return () => abortController.abort();
         }
-    }, states);
+    }, [url, method, headers, body, condition, ...(Array.isArray(states) ? states : [])]);
 
 
     const handleCancelRequest = () =>{
@@ -52,5 +53,5 @@ export function useFetch(config,states,condition){
             setError("Request Cancel");
         }
     };
-    return {data,loading,error,status, handleCancelRequest};
+    return {data, loading, error, status, handleCancelRequest};
 }
