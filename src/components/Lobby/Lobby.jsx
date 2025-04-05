@@ -86,7 +86,7 @@ const Lobby = () => {
             method: 'GET',
             headers: {
               'accept': '*/*',
-              'Ocp-Apim-Subscription-Key': 'b553314cb92447a6bb13871a44b16726'
+              'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY
             }
           });
           
@@ -140,7 +140,7 @@ const Lobby = () => {
       const response = await fetch("https://thehiddencargo1.azure-api.net/lobbies/lobbies/listar", {
         method: 'GET',
         headers: {
-          'Ocp-Apim-Subscription-Key': 'b553314cb92447a6bb13871a44b16726',
+          'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY,
           'accept': '*/*'
         }
       });
@@ -235,7 +235,7 @@ const Lobby = () => {
         const response = await fetch("https://thehiddencargo1.azure-api.net/lobbies/lobbies", {
           method: 'POST',
           headers: {
-            'Ocp-Apim-Subscription-Key': 'b553314cb92447a6bb13871a44b16726',
+            'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY,
             'Content-Type': 'application/json',
             'accept': '*/*'
           },
@@ -344,7 +344,7 @@ const Lobby = () => {
             method: 'GET',
             headers: {
               'accept': '*/*',
-              'Ocp-Apim-Subscription-Key': 'b553314cb92447a6bb13871a44b16726'
+              'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY
             }
           });
           
@@ -392,7 +392,7 @@ const Lobby = () => {
         {
           method: 'POST',
           headers: {
-            'Ocp-Apim-Subscription-Key': 'b553314cb92447a6bb13871a44b16726',
+            'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY,
             'Content-Type': 'application/json',
             'accept': '*/*'
           },
@@ -423,7 +423,7 @@ const Lobby = () => {
             isHost: false
           },
           extraHeaders: {
-            "Ocp-Apim-Subscription-Key": "b553314cb92447a6bb13871a44b16726"
+            "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY
           }
         });
         
@@ -522,7 +522,7 @@ const Lobby = () => {
             method: 'GET',
             headers: {
               'accept': '*/*',
-              'Ocp-Apim-Subscription-Key': 'b553314cb92447a6bb13871a44b16726'
+              'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY
             }
           });
           
@@ -562,7 +562,7 @@ const Lobby = () => {
         {
           method: 'POST',
           headers: {
-            'Ocp-Apim-Subscription-Key': 'b553314cb92447a6bb13871a44b16726',
+            'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY,
             'Content-Type': 'application/json',
             'accept': '*/*'
           },
@@ -595,7 +595,7 @@ const Lobby = () => {
             isHost: false
           },
           extraHeaders: {
-            "Ocp-Apim-Subscription-Key": "b553314cb92447a6bb13871a44b16726"
+            "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY
           }
         });
         
