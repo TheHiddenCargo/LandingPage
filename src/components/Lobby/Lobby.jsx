@@ -708,7 +708,7 @@ const Lobby = () => {
   
   return (
       <>
-        
+        {loading ? null :
             <div className="lobby-container">
               <Sidebar onSignOut={handleSignOut}/>
               <header className="lobby-header">

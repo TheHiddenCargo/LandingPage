@@ -54,6 +54,5 @@ const getSuspender = (promise) => {
                 return response.json();
             });
 
-            return promise;
         return getSuspender(promise);
     }

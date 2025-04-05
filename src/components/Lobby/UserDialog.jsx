@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState,useCallback} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useFetch} from "../../personalHooks/useFetch";
 import blueGuy from "../../assets/gamerIcons/blueGuy.png";
 import greenGuy from "../../assets/gamerIcons/greenGuy.png";
@@ -24,7 +24,6 @@ const UserDialog = ({toCreate,email,onClose}) => {
     const dialogRef = useRef(null);
     const [errorNickname, setErrorNickname] = useState(null);
     const [errorIcon, setErrorIcon] = useState(null);
-
 
 
 
@@ -88,12 +87,13 @@ const UserDialog = ({toCreate,email,onClose}) => {
         bear
     ];
 
-    const handleClose = useCallback(() => {
+    const handleClose = () => {
         if (dialogRef.current) {
             dialogRef.current.close();
             if (!toCreate && onClose) onClose();
+
         }
-    }, [toCreate, onClose]);
+    };
 
     const handleSubmit = () => {
         if(toCreate) setCreateUser(true);
@@ -110,8 +110,6 @@ const UserDialog = ({toCreate,email,onClose}) => {
 
     useEffect(() => {
         if (dialogRef) {
-            const currentDialogRef = dialogRef.current;
-
 
             if(toCreate){
                 setTitle("Creación de Usuario");
@@ -120,20 +118,20 @@ const UserDialog = ({toCreate,email,onClose}) => {
                 setSubmitButton("Actualizar");
 
             }
-            currentDialogRef.showModal();
+            dialogRef.current.showModal();
             const handleCancel = (event) => {
                 event.preventDefault();
             };
-            currentDialogRef.addEventListener('cancel', handleCancel);
+            dialogRef.current.addEventListener('cancel', handleCancel);
 
             return () => {
-                if (currentDialogRef) {
-                    currentDialogRef.removeEventListener('cancel', handleCancel);
+                if (dialogRef.current) {
+                    dialogRef.current.removeEventListener('cancel', handleCancel);
                 }
             };
         }
 
-    }, [toCreate]);
+    }, []);
 
     /*Handle GET*/
 
@@ -158,7 +156,7 @@ const UserDialog = ({toCreate,email,onClose}) => {
             setCreateUser(false);
             setIcon(null);
         }
-    }, [loadingCreate,statusCreate,createUser,handleClose]);
+    }, [loadingCreate,statusCreate]);
 
 
     /*Handle Update*/
@@ -175,7 +173,7 @@ const UserDialog = ({toCreate,email,onClose}) => {
             setErrorNickname(`Error nickname: ${statusNickname}`);
             setErrorIcon(`Error Icon: ${statusIcon}`);
         }
-    }, [loadingNickname,loadingIcon,statusIcon,statusNickname,handleClose,icon,newNickname]);
+    }, [loadingNickname,loadingIcon,statusIcon,statusNickname]);
 
 
 

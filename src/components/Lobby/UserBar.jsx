@@ -1,5 +1,6 @@
-import React, {useEffect, useRef, useState, useCallback} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import "../../styles/UserBar.css"
+import io from 'socket.io-client';
 import PropTypes from "prop-types";
 import UserDialog from "./UserDialog";
 
@@ -26,7 +27,7 @@ function UserBar ({email}) {
     const API_KEY = "b553314cb92447a6bb13871a44b16726";
 
     // Función para realizar el polling de información del usuario
-    const pollUserInfo = useCallback(async () => {
+    const pollUserInfo = async () => {
         try {
             if (!infoPollingActive.current) return;
 
@@ -65,10 +66,10 @@ function UserBar ({email}) {
                 setTimeout(pollUserInfo, 5000);
             }
         }
-    }, [email, API_BASE_URL, API_KEY]);
+    };
 
     // Función para realizar el polling del balance
-    const pollUserBalance = useCallback(async () => {
+    const pollUserBalance = async () => {
         try {
             if (!balancePollingActive.current) return;
 
@@ -106,7 +107,7 @@ function UserBar ({email}) {
                 setTimeout(pollUserBalance, 5000);
             }
         }
-    }, [email, API_BASE_URL, API_KEY]);
+    };
 
     // Iniciar los pollings cuando el componente se monta
     useEffect(() => {
@@ -126,7 +127,7 @@ function UserBar ({email}) {
             infoPollingActive.current = false;
             balancePollingActive.current = false;
         };
-    }, [email, pollUserInfo, pollUserBalance]);
+    }, [email]);
 
 
 
@@ -161,7 +162,7 @@ function UserBar ({email}) {
                             <p>${balance}</p>
                         </div>
                     </div>
-                    {update && <UserDialog key={dialogKey} toCreate={false} email={email} onClose={handleCloseDialog} />}
+                    {update && <UserDialog key={dialogKey} toCreate={false} email={email} setUpdate={handleCloseDialog} />}
                 </>
 
                 : <div className="user-info"><h2>Usuario No encontrado</h2></div>
@@ -176,4 +177,4 @@ UserBar.propTypes = {
 };
 
 
-export default UserBar;
+export  default  UserBar;
