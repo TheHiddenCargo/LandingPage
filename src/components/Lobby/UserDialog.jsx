@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState, useCallback} from "react";
+import React, {useEffect, useRef, useState,useCallback} from "react";
 import {useFetch} from "../../personalHooks/useFetch";
 import blueGuy from "../../assets/gamerIcons/blueGuy.png";
 import greenGuy from "../../assets/gamerIcons/greenGuy.png";
@@ -14,11 +14,11 @@ import "../../styles/UserDialog.css"
 
 
 
-const UserDialog = ({toCreate, email, onClose}) => {
+const UserDialog = ({toCreate,email,onClose}) => {
     const [newNickname, setNewNickname] = useState('');
     const [icon, setIcon] = useState(null);
-    const [title, setTitle] = useState(null);
-    const [submitButton, setSubmitButton] = useState(null);
+    const[title, setTitle] = useState(null);
+    const[submitButton, setSubmitButton]= useState(null);
     const [createUser, setCreateUser] = useState(false);
     const [updateUser, setUpdateUser] = useState(false);
     const dialogRef = useRef(null);
@@ -103,15 +103,6 @@ const UserDialog = ({toCreate, email, onClose}) => {
     const handleKeyDown = (e) => {
         if (e.key === ' ') {
             e.preventDefault(); // Previene la acción de la tecla de espacio
-        }
-    };
-    
-    // Manejador de eventos para selección de iconos con teclado
-    const handleIconKeyDown = (e, iconMap) => {
-        // Activar la selección con Enter o Space
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setIcon(iconMap);
         }
     };
 
@@ -205,18 +196,11 @@ const UserDialog = ({toCreate, email, onClose}) => {
 
                 <div className="select-icons">
                     {icons.map((iconMap,index) => (
-                        <div 
-                            className={`icon-container ${icon === iconMap ? 'selected' : ''}`}
-                            key={index} 
-                            onClick={() => setIcon(iconMap)}
-                            onKeyDown={(e) => handleIconKeyDown(e, iconMap)}
-                            tabIndex="0"
-                            role="button"
-                            aria-label={`Seleccionar avatar ${index + 1}`}
-                        >
+                        <div className={`icon-container ${icon === iconMap ? 'selected' : ''}`}
+                             key={index} onClick={(() => setIcon(iconMap))}>
                             <img
                                 src={iconMap}
-                                alt={`Avatar ${index + 1}`}
+                                alt={index}
                             />
                         </div>
 
@@ -233,6 +217,9 @@ const UserDialog = ({toCreate, email, onClose}) => {
             </div>
             {statusCreate !== 201 && <h2>{errorCreate}</h2>}
         </dialog>
+
+
+
     );
 };
 
