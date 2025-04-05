@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
 import "../../styles/UserBar.css"
-import io from 'socket.io-client';
 import PropTypes from "prop-types";
 import UserDialog from "./UserDialog";
 
@@ -127,7 +126,7 @@ function UserBar ({email}) {
             infoPollingActive.current = false;
             balancePollingActive.current = false;
         };
-    }, [email]);
+    }, [email,pollUserInfo(),pollUserBalance()]);
 
 
 

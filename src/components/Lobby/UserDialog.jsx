@@ -28,6 +28,7 @@ const UserDialog = ({toCreate,email,onClose}) => {
 
 
 
+
     /*Fetch to register User*/
     const {loading:loadingCreate, status:statusCreate, error: errorCreate} = useFetch({
         url: 'https://thehiddencargo1.azure-api.net/creation/users/register',
@@ -110,6 +111,8 @@ const UserDialog = ({toCreate,email,onClose}) => {
 
     useEffect(() => {
         if (dialogRef) {
+            const currentDialogRef = dialogRef.current;
+
 
             if(toCreate){
                 setTitle("Creación de Usuario");
@@ -118,20 +121,20 @@ const UserDialog = ({toCreate,email,onClose}) => {
                 setSubmitButton("Actualizar");
 
             }
-            dialogRef.current.showModal();
+            currentDialogRef.showModal();
             const handleCancel = (event) => {
                 event.preventDefault();
             };
-            dialogRef.current.addEventListener('cancel', handleCancel);
+            currentDialogRef.addEventListener('cancel', handleCancel);
 
             return () => {
-                if (dialogRef.current) {
-                    dialogRef.current.removeEventListener('cancel', handleCancel);
+                if (currentDialogRef) {
+                    currentDialogRef.removeEventListener('cancel', handleCancel);
                 }
             };
         }
 
-    }, []);
+    }, [toCreate]);
 
     /*Handle GET*/
 
@@ -156,7 +159,7 @@ const UserDialog = ({toCreate,email,onClose}) => {
             setCreateUser(false);
             setIcon(null);
         }
-    }, [loadingCreate,statusCreate]);
+    }, [loadingCreate,statusCreate,createUser,handleClose]);
 
 
     /*Handle Update*/
@@ -173,7 +176,7 @@ const UserDialog = ({toCreate,email,onClose}) => {
             setErrorNickname(`Error nickname: ${statusNickname}`);
             setErrorIcon(`Error Icon: ${statusIcon}`);
         }
-    }, [loadingNickname,loadingIcon,statusIcon,statusNickname]);
+    }, [loadingNickname,loadingIcon,statusIcon,statusNickname,handleClose,icon,newNickname]);
 
 
 
