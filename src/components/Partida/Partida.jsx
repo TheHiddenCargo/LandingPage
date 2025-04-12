@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Partida.css";
+import ReactConfetti from "react-confetti";
 
 const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
   const [players, setPlayers] = useState([]);
@@ -16,6 +17,26 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
   const [isReady, setIsReady] = useState(false); // Estado de "listo" para avanzar a la siguiente ronda
   const [readyPlayers, setReadyPlayers] = useState([]); // Lista de jugadores listos para la siguiente ronda
   const [revealedContainer, setRevealedContainer] = useState(null); // Contenedor revelado con su información
+  
+  // Estado para el confeti cuando se gana una ronda
+  const [showWinConfetti, setShowWinConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
+
+  // Actualizar dimensiones de la ventana para el confeti
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Verificar al inicio si hay un juego finalizado en sessionStorage (recuperación)
   useEffect(() => {
@@ -184,6 +205,13 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
         bidAmount: resultData.bidAmount,
         profit: resultData.profit
       });
+      
+      // Mostrar confeti si el usuario actual ganó la subasta
+      if (resultData.winner === userName) {
+        setShowWinConfetti(true);
+        // Ocultar el confeti después de 4 segundos
+        setTimeout(() => setShowWinConfetti(false), 4000);
+      }
       
       // Construir mensaje de notificación
       let mensaje = "";
@@ -490,7 +518,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
     return (
       <div className="partida-container">
         <div className="partida-header">
-          <h1 className="partida-titulo">¡Juego Finalizado!</h1>
+          <h1 className="partida-titulo-final">¡Juego Finalizado!</h1>
         </div>
         
         <Notification />
@@ -530,10 +558,24 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
 
   return (
     <div className="partida-container">
+      {/* Confeti para cuando el jugador gana una subasta */}
+      {showWinConfetti && (
+        <ReactConfetti
+          width={windowSize.width}
+          height={windowSize.height}
+          recycle={false}
+          numberOfPieces={300}
+          gravity={0.3}
+          colors={['#f44336', '#e91e63', '#9c27b0', '#3f51b5', '#2196f3', '#4CAF50', '#FFEB3B', '#FFC107']}
+        />
+      )}
+      
       <div className="partida-header">
         <h1 className="partida-titulo">Partida en Curso</h1>
         <div className="player-info">
-          <span className="player-name">{userName}</span>
+          <div className="player-name-container">
+            <span className="player-name">{userName}</span>
+          </div>
           <span className="player-balance">Saldo: ${playerBalance}</span>
         </div>
         <div className="round-info">
@@ -669,7 +711,6 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
           </div>
         )}
       </div>
-
       <div className="players-list">
         <h3>Jugadores</h3>
         <div className="players-grid">

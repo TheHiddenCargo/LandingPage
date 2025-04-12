@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+
 .partida-container {
   display: flex;
   flex-direction: column;
@@ -16,9 +19,20 @@
 }
 
 .partida-titulo {
-  font-size: 2rem;
+  font-family: 'Press Start 2P', cursive;
   margin: 0;
+  color: #facc15;
 }
+
+.partida-titulo-final {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 18px;
+  text-align: center;
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+}
+
 
 .player-info {
   display: flex;
@@ -28,18 +42,27 @@
 
 .player-name {
   font-weight: bold;
-  font-size: 1.2rem;
+  font-family: 'Press Start 2P', cursive;
+  text-align: center;
+
+}
+
+.player-name-container {
+  text-align: center;
+  width: 100%;
 }
 
 .player-balance {
   color: #4cd964;
-  font-size: 1.1rem;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .round-info {
   display: flex;
   flex-direction: column;
   align-items: center;
+  font-family: 'Press Start 2P', cursive;
+
 }
 
 .countdown {
@@ -61,6 +84,7 @@
 }
 
 .waiting-message {
+  font-family: 'Press Start 2P', cursive;
   font-size: 1.5rem;
   color: #aab2cd;
   text-align: center;
@@ -91,11 +115,18 @@
   align-items: center;
   width: 100%;
   max-width: 600px;
+  overflow: visible;
 }
 
 .container-display {
   margin-bottom: 30px;
   text-align: center;
+  font-family: 'Press Start 2P', cursive;
+  color: #ffcc00;
+  text-shadow: 1px 1px 2px #000;
+  position: relative;
+  z-index: 2; /* Que esté por encima */
+  overflow: visible; /* Asegura que no corte el contenido */
 }
 
 .container-info {
@@ -116,6 +147,7 @@
 
 .container-image {
   margin: 20px 0;
+  margin-left: 100px;
 }
 
 .mystery-box {
@@ -149,6 +181,7 @@
 }
 
 .mystery-box.opening {
+  font-family: 'Press Start 2P', cursive;
   transform: scale(1.1);
   animation: pulse 1s infinite;
 }
@@ -166,7 +199,7 @@
 }
 
 .current-bid {
-  font-size: 1.2rem;
+  font-family: 'Press Start 2P', cursive;
   margin-top: 15px;
   color: #ff9500;
   font-weight: bold;
@@ -194,6 +227,7 @@
 
 .boton-apostar {
   background-color: #7165e3;
+  font-family: 'Press Start 2P', cursive;
   color: white;
   padding: 12px 25px;
   border: none;
@@ -213,6 +247,7 @@
 }
 
 .boton-salir {
+  font-family: 'Press Start 2P', cursive;
   background-color: #e74c3c;
   color: white;
   padding: 12px 25px;
@@ -230,6 +265,7 @@
 }
 
 .players-list {
+  font-family: 'Press Start 2P', cursive;
   margin-bottom: 20px;
 }
 
@@ -280,10 +316,12 @@
 
 .reveal-animation {
   text-align: center;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .container-opening {
   margin: 30px 0;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .game-results {
@@ -301,7 +339,8 @@
 }
 
 .final-scores {
-  margin-top: 30px;
+  font-family: 'Press Start 2P', cursive;
+  margin-top: 40px;
 }
 
 .scores-table {
@@ -355,6 +394,7 @@
   }
   
   .boton-apostar {
+    font-family: 'Press Start 2P', cursive;
     width: 80%;
   }
   
@@ -364,9 +404,9 @@
   
   .boton-salir {
     align-self: center;
+    font-family: 'Press Start 2P', cursive;
   }
 }
-/* Agregar estos estilos a tu archivo Partida.css */
 
 /* Estilos para notificaciones */
 .notification {
@@ -405,6 +445,7 @@
   max-width: 600px;
   margin: 0 auto;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.8s ease-in-out;
 }
 
 .container-result {
@@ -424,6 +465,10 @@
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.container-image:hover {
+  transform: scale(1.05);
 }
 
 .container-image.normal {
@@ -453,9 +498,12 @@
 }
 
 .result-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
   font-weight: bold;
-  font-size: 1.2em;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  color: #00ff99;
+  animation: blinkingGlow 1.2s infinite;
 }
 
 .objects-list {
@@ -464,8 +512,8 @@
 }
 
 .objects-list h4 {
-  font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+  color: #ffa500;
 }
 
 .objects-list ul {
@@ -480,6 +528,7 @@
   border-radius: 4px;
 }
 
+
 /* Estilos para el sistema de "listo" */
 .ready-controls {
   display: flex;
@@ -492,13 +541,17 @@
 }
 
 .ready-status {
+  font-family: 'Press Start 2P', cursive;
   font-weight: bold;
   margin-bottom: 10px;
+  margin-left: 80px;
 }
 
 .ready-count {
+  font-family: 'Press Start 2P', cursive;
   margin-bottom: 15px;
   color: #aaa;
+  margin-left: 80px;
 }
 
 .ready-players {
@@ -527,6 +580,7 @@
 }
 
 .boton-listo {
+  font-family: 'Press Start 2P', cursive;
   background-color: #4bb543;
   border: none;
   color: white;
@@ -535,6 +589,7 @@
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s;
+  
 }
 
 .boton-listo:hover:not(:disabled) {
@@ -606,3 +661,9 @@
     font-size: 0.8em;
   }
 }
+
+
+
+
+
+
