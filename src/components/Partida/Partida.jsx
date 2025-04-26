@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import "./Partida.css";
 import ReactConfetti from "react-confetti";
+import azul1 from '../../assets/objects/azul/azul1.png';
+import azul2 from '../../assets/objects/azul/azul2.png';
+import blanco1 from '../../assets/objects/blanco/blanco1.png';
+import blanco2 from '../../assets/objects/blanco/blanco2.png';
+import gris1 from '../../assets/objects/gris/gris1.png';
+import gris2 from '../../assets/objects/gris/gris2.png';
+import dorado1 from '../../assets/objects/dorado/dorado1.png';
+import dorado2 from '../../assets/objects/dorado/dorado2.png';
 
 const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
   const [players, setPlayers] = useState([]);
@@ -17,7 +25,8 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
   const [isReady, setIsReady] = useState(false); // Estado de "listo" para avanzar a la siguiente ronda
   const [readyPlayers, setReadyPlayers] = useState([]); // Lista de jugadores listos para la siguiente ronda
   const [revealedContainer, setRevealedContainer] = useState(null); // Contenedor revelado con su información
-  
+  const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Crect width='50' height='50' fill='%23666'/%3E%3C/svg%3E";
+
   // Estado para el confeti cuando se gana una ronda
   const [showWinConfetti, setShowWinConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({
@@ -25,7 +34,33 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
     height: window.innerHeight
   });
 
-  // Actualizar dimensiones de la ventana para el confeti
+  function getObjectImageByContainerType(containerColor, objectName) {
+    try {
+      const color = containerColor?.toLowerCase() || 'dorado';
+      const index = objectName?.includes("2") ? 1 : 0;
+      
+      // Check if the color exists in our mapping
+      if (!imageMap[color]) {
+        console.warn(`Color not found in imageMap: ${color}, using fallback`);
+        return fallbackImage;
+      }
+      
+      // Return the image or fallback if not found
+      return imageMap[color][index] || fallbackImage;
+    } catch (error) {
+      console.error('Error getting object image:', error);
+      return fallbackImage;
+    }
+  }
+
+  const imageMap = {
+    blanco: [blanco1, blanco2],
+    gris: [gris1, gris2],
+    azul: [azul1, azul2],
+    dorado: [dorado1, dorado2],
+  };
+
+  
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
@@ -647,69 +682,94 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
         )}
         
         {gameState === "ready" && revealedContainer && (
-          <div className="results-display">
-            <h3>Resultado de la Subasta</h3>
-            
-            <div className="container-result">
-              <div className={`container-image ${revealedContainer.type && revealedContainer.type.toLowerCase()}`}>
-                <div className="container-content">
-                  <p className="result-title">
-                    {revealedContainer.winner === userName ? "¡Has ganado!" : `${revealedContainer.winner} ha ganado`}
-                  </p>
-                  <p>Tipo: {revealedContainer.type} {revealedContainer.color !== "desconocido" ? `(${revealedContainer.color})` : ""}</p>
-                  <p>Valor: ${revealedContainer.value}</p>
-                  <p>Apuesta: ${revealedContainer.bidAmount}</p>
-                  <p>Beneficio: ${revealedContainer.profit}</p>
-                  
-                  {revealedContainer.objects && revealedContainer.objects.length > 0 && (
-                    <div className="objects-list">
-                      <h4>Objetos:</h4>
-                      <ul>
-                        {revealedContainer.objects.map((obj, index) => (
-                          <li key={index}>{obj.nombre}: ${obj.precio}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+        <div className="results-display">
+          <h3 className="subasta-title">Resultado de la Subasta</h3>
+          
+          <div className="container-result">
+            {/* Container with information */}
+            <div className={`container-image ${revealedContainer.color && revealedContainer.color.toLowerCase()}`}>
+              <div className="container-content">
+                <p className="result-title">
+                  {revealedContainer.winner === userName ? "¡Has ganado!" : `${revealedContainer.winner} ha ganado`}
+                </p>
+                <p>Tipo: {revealedContainer.type} {revealedContainer.color !== "desconocido" ? `(${revealedContainer.color})` : ""}</p>
+                <p>Valor: ${revealedContainer.value}</p>
+                <p>Apuesta: ${revealedContainer.bidAmount}</p>
+                <p>Beneficio: ${revealedContainer.profit}</p>
+                
+                {revealedContainer.objects && revealedContainer.objects.length > 0 && (
+                  <div className="objects-info">
+                  </div>
+                )}
               </div>
             </div>
             
-            <div className="ready-controls">
-              <p className="ready-status">
-                {isReady 
-                  ? "Esperando a que todos estén listos..." 
-                  : "¿Listo para la siguiente ronda?"}
-              </p>
-              <p className="ready-count">
-                Jugadores listos: {readyPlayers.length} / {players.length}
-              </p>
-              <div className="ready-players">
-                {players.map((player, index) => {
-                  const playerName = typeof player === 'string' ? player : player.name;
-                  const isPlayerReady = readyPlayers.includes(playerName);
-                  
-                  return (
-                    <div 
-                      key={index} 
-                      className={`ready-player ${isPlayerReady ? 'ready' : 'not-ready'}`}
-                    >
-                      {playerName} {isPlayerReady ? '✓' : '...'}
+            {/* Objects with improved visibility and animations */}
+            {revealedContainer.objects && revealedContainer.objects.length > 0 && (
+              <div className="objects-display">
+                {revealedContainer.objects.map((obj, index) => (
+                  <div 
+                    key={`object-${index}`} 
+                    className="object-item"
+                    style={{"--animation-order": index}}
+                  >
+                    <div className="object-image-wrapper">
+                      <img 
+                        src={getObjectImageByContainerType(revealedContainer.color, obj.nombre)}
+                        alt={obj.nombre}
+                        className="object-image"
+                        onError={(e) => {
+                          console.log(`Error loading image for ${obj.nombre}`);
+                          e.target.src = fallbackImage;
+                          console.log("Fallback image used:", fallbackImage);
+                        }}
+                      />
                     </div>
-                  );
-                })}
+                    <div className="object-info">
+                      <span className="object-name">{obj.nombre}</span>
+                      <span className="object-price">${obj.precio}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-              
-              <button 
-                className="boton-listo"
-                onClick={handleReadyForNextRound}
-                disabled={isReady}
-              >
-                {isReady ? "Listo ✓" : "Estoy Listo"}
-              </button>
-            </div>
+            )}
           </div>
-        )}
+          
+          <div className="ready-controls">
+            <p className="ready-status">
+              {isReady 
+                ? "Esperando a que todos estén listos..." 
+                : "¿Listo para la siguiente ronda?"}
+            </p>
+            <p className="ready-count">
+              Jugadores listos: {readyPlayers.length} / {players.length}
+            </p>
+            <div className="ready-players">
+              {players.map((player, index) => {
+                const playerName = typeof player === 'string' ? player : player.name;
+                const isPlayerReady = readyPlayers.includes(playerName);
+                
+                return (
+                  <div 
+                    key={index} 
+                    className={`ready-player ${isPlayerReady ? 'ready' : 'not-ready'}`}
+                  >
+                    {playerName} {isPlayerReady ? '✓' : '...'}
+                  </div>
+                );
+              })}
+            </div>
+            
+            <button 
+              className="boton-listo"
+              onClick={handleReadyForNextRound}
+              disabled={isReady}
+            >
+              {isReady ? "Listo ✓" : "Estoy Listo"}
+            </button>
+          </div>
+        </div>
+      )}
       </div>
       <div className="players-list">
         <h3>Jugadores</h3>
