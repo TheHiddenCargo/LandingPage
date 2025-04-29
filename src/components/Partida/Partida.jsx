@@ -11,12 +11,12 @@ import dorado1 from '../../assets/objects/dorado/dorado1.png';
 import dorado2 from '../../assets/objects/dorado/dorado2.png';
 
 const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
-  const [players, setPlayers] = useState([]);
+  const [players, setPlayers] = useState([]); 
   const [currentBid, setCurrentBid] = useState(100); // Apuesta inicial por defecto
   const [activeContainer, setActiveContainer] = useState(null);
   const [gameState, setGameState] = useState("waiting"); // waiting, bidding, revealing, ready, finished
   const [bidAmount, setBidAmount] = useState(200); // Valor inicial para apostar (mayor que la apuesta inicial)
-  const [playerBalance, setPlayerBalance] = useState(1000); // Saldo inicial
+  const [playerBalance, setPlayerBalance] = useState(0); // Inicializado en 0, se actualizará desde la API
   const [currentRound, setCurrentRound] = useState(1);
   const [totalRounds, setTotalRounds] = useState(lobbyData?.rounds || 3);
   const [countdown, setCountdown] = useState(0);
@@ -25,6 +25,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
   const [isReady, setIsReady] = useState(false); // Estado de "listo" para avanzar a la siguiente ronda
   const [readyPlayers, setReadyPlayers] = useState([]); // Lista de jugadores listos para la siguiente ronda
   const [revealedContainer, setRevealedContainer] = useState(null); // Contenedor revelado con su información
+  const [isLoading, setIsLoading] = useState(true); // Estado para controlar la carga inicial
   const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Crect width='50' height='50' fill='%23666'/%3E%3C/svg%3E";
 
   // Estado para el confeti cuando se gana una ronda
@@ -33,6 +34,85 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
     width: window.innerWidth,
     height: window.innerHeight
   });
+
+  // Nuevo useEffect para obtener el saldo inicial del usuario usando fetch
+  useEffect(() => {
+    const fetchInitialBalance = async () => {
+      try {
+        setIsLoading(true);
+        // Realizar la petición para obtener el balance usando el nickname con fetch
+        const response = await fetch(`https://thehiddencargo1.azure-api.net/creation/polling/users/nickname/${userName}/balance`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error al obtener el balance: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Obtener el balance desde la respuesta (ajusta según la estructura de tu API)
+        if (data && data.userBalance !== undefined) {
+          setPlayerBalance(parseInt(data.userBalance));
+          
+          // Enviar el balance al servidor cuando lo recibimos
+          if (socketConnection) {
+            console.log('Enviando balance inicial al servidor:', parseInt(data.userBalance));
+            socketConnection.emit('updatePlayerBalance', {
+              nickname: userName,
+              lobbyName: lobbyData ? lobbyData.name : "",
+              initialBalance: parseInt(data.userBalance)
+            });
+          }
+        } else {
+          console.warn('La respuesta de la API no contiene el campo userBalance:', data);
+          // Puedes establecer un valor por defecto o mostrar una notificación
+          setNotification({
+            type: "warning",
+            message: "No se pudo obtener el saldo inicial. Usando valor por defecto."
+          });
+          setPlayerBalance(1000); // Valor por defecto
+          
+          // Enviar el balance por defecto
+          if (socketConnection) {
+            console.log('Enviando balance por defecto al servidor:', 1000);
+            socketConnection.emit('updatePlayerBalance', {
+              nickname: userName,
+              lobbyName: lobbyData ? lobbyData.name : "",
+              initialBalance: 1000
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error al obtener el saldo inicial:', error);
+        setNotification({
+          type: "error",
+          message: "Error al obtener el saldo inicial. Usando valor por defecto."
+        });
+        setPlayerBalance(1000); // Valor por defecto en caso de error
+        
+        // Enviar el balance por defecto en caso de error
+        if (socketConnection) {
+          console.log('Enviando balance por defecto al servidor tras error:', 1000);
+          socketConnection.emit('updatePlayerBalance', {
+            nickname: userName,
+            lobbyName: lobbyData ? lobbyData.name : "",
+            initialBalance: 1000
+          });
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (userName && socketConnection) {
+      fetchInitialBalance();
+    }
+  }, [userName, socketConnection, lobbyData]);
 
   function getObjectImageByContainerType(containerColor, objectName) {
     try {
@@ -491,7 +571,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
     if (bidAmount <= currentBid) {
       setNotification({
         type: "error",
-        message: `Tu apuesta debe ser mayor que la apuesta actual ($${currentBid})`
+        message: `Tu apuesta debe ser mayor que la apuesta actual (${currentBid})`
       });
       return;
     }
@@ -547,6 +627,18 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
       </div>
     );
   };
+
+  // Mostrar pantalla de carga mientras se obtiene el saldo inicial
+  if (isLoading) {
+    return (
+      <div className="partida-container">
+        <div className="loading-screen">
+          <h2>Cargando datos de usuario...</h2>
+          <div className="loading-spinner"></div>
+        </div>
+      </div>
+    );
+  }
 
   // Renderizado condicional según el estado del juego
   if (gameState === "finished" && gameResult) {
