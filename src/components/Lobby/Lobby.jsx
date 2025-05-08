@@ -149,6 +149,7 @@ const Lobby = () => {
         throw new Error(`Error al cargar lobbies: ${response.status}`);
       }
       
+
       const data = await response.json();
       console.log("Lobbies cargados:", data);
       
@@ -270,7 +271,7 @@ const Lobby = () => {
         setLobbies([...lobbies, newLobby]);
     
         // Establecer conexión de Socket.io
-        const newSocket = io("http://localhost:443", {
+        const newSocket = io("http://135.119.113.130:30000", {
           path: "/socket.io",
           transports: ['websocket', 'polling'],
           query: {
@@ -414,7 +415,7 @@ const Lobby = () => {
         // Establecer conexión de Socket.io
         console.log("Estableciendo conexión de socket...");
         
-        const newSocket = io("http://localhost:443", {
+        const newSocket = io("http://135.119.113.130:30000", {
           path: "/socket.io",
           transports: ['websocket', 'polling'],
           query: {
@@ -586,7 +587,7 @@ const Lobby = () => {
         console.log("Estableciendo conexión de socket...");
         
         // Establecer conexión de Socket.io con la URL correcta y configuración apropiada
-        const newSocket = io("http://localhost:443", {
+        const newSocket = io("http://135.119.113.130:30000", {
           path: "/socket.io",
           transports: ['websocket', 'polling'],
           query: {
