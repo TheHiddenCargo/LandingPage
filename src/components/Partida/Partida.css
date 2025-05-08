@@ -928,5 +928,223 @@ bidding-area {
 }
 
 
+/* Estilos para la sección de jugadores y sus apuestas */
+.players-bids-section {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+}
 
+.players-bids-section h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: #facc15;
+  text-align: center;
+  font-family: 'Press Start 2P', cursive;
+  padding-bottom: 0.5rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.players-bids-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.player-bid-card {
+  background-color: #252a3d;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-bid-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.current-bidder {
+  border: 2px solid #3498db;
+  background-color: rgba(52, 152, 219, 0.15);
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+}
+
+.player-bid-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.player-bid-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-left: 0.75rem;
+}
+
+.bidder-badge {
+  margin-left: 0.5rem;
+  font-size: 1rem;
+  color: #3498db;
+  animation: pulse 1.5s infinite;
+}
+
+.ready-badge {
+  margin-left: 0.5rem;
+  font-size: 1rem;
+  color: #2ecc71;
+}
+
+.current-bid-tag {
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 0.5rem;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.winner-bid-tag {
+  background-color: #f5a623;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 0.5rem;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.profit-tag {
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Estilos para la pantalla de finalización mejorada */
+.partida-titulo-final {
+  font-size: 2.5rem;
+  color: #f5a623;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 1.5rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+
+.winner-announcement {
+  background-color: rgba(245, 166, 35, 0.2);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+  border: 2px solid #f5a623;
+  text-align: center;
+}
+
+.winner-title {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  font-family: 'Press Start 2P', cursive;
+}
+
+.winner-name {
+  color: #f5a623;
+  font-weight: bold;
+}
+
+.player-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.player-avatar-small {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #3498db;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.winner-crown {
+  margin-left: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.profit-positive {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.profit-negative {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.players-final-list {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.winner-card {
+  border: 2px solid #f5a623;
+  background-color: rgba(245, 166, 35, 0.1);
+  box-shadow: 0 0 10px rgba(245, 166, 35, 0.3);
+}
+
+.winner-badge {
+  margin-left: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 768px) {
+  .players-bids-container {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .player-bid-card {
+    padding: 0.75rem;
+  }
+  
+  .current-bid-tag, .winner-bid-tag {
+    font-size: 0.7rem;
+    padding: 0.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .players-bids-container {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+  
+  .winner-title {
+    font-size: 1.4rem;
+  }
+  
+  .player-avatar-small {
+    width: 25px;
+    height: 25px;
+  }
+}
 

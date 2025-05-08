@@ -26,6 +26,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
   const [readyPlayers, setReadyPlayers] = useState([]); // Lista de jugadores listos para la siguiente ronda
   const [revealedContainer, setRevealedContainer] = useState(null); // Contenedor revelado con su información
   const [isLoading, setIsLoading] = useState(true); // Estado para controlar la carga inicial
+  const [lastBidder, setLastBidder] = useState(null); // Último jugador que realizó una apuesta
   const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Crect width='50' height='50' fill='%23666'/%3E%3C/svg%3E";
 
   // Estado para el confeti cuando se gana una ronda
@@ -35,7 +36,38 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
     height: window.innerHeight
   });
 
-  // Nuevo useEffect para obtener el saldo inicial del usuario usando fetch
+  // Función para obtener el balance del usuario desde la API
+  // Solo lo usamos al final de cada ronda para sincronizar con el servidor
+  const fetchUserBalance = async () => {
+    try {
+      console.log('Obteniendo balance actualizado para:', userName);
+      const response = await fetch(`https://thehiddencargo1.azure-api.net/creation/polling/users/nickname/${userName}/balance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener el balance: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Obtener el balance desde la respuesta
+      if (data && data.userBalance !== undefined) {
+        console.log('Balance actualizado recibido:', data.userBalance);
+        setPlayerBalance(parseInt(data.userBalance));
+      } else {
+        console.warn('La respuesta de la API no contiene el campo userBalance:', data);
+      }
+    } catch (error) {
+      console.error('Error al obtener el saldo actualizado:', error);
+    }
+  };
+
+  // useEffect para obtener el saldo inicial del usuario usando fetch
   useEffect(() => {
     const fetchInitialBalance = async () => {
       try {
@@ -231,6 +263,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
       // Reiniciar la lista de jugadores listos
       setReadyPlayers([]);
       setIsReady(false);
+      setLastBidder(null);
     });
 
     socketConnection.on('newRound', (roundData) => {
@@ -248,6 +281,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
         // Reiniciar la lista de jugadores listos
         setReadyPlayers([]);
         setIsReady(false);
+        setLastBidder(null);
         
         // Limpiar notificaciones y contenedor revelado
         setNotification(null);
@@ -272,6 +306,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
       console.log('Nueva apuesta recibida:', bidData);
       setCurrentBid(bidData.amount);
       setBidAmount(bidData.amount + 50); // Sugerencia para la próxima apuesta
+      setLastBidder(bidData.nickname);
     });
 
     socketConnection.on('bidResult', (resultData) => {
@@ -348,11 +383,14 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
       // Cambiar a estado ready para esperar a que todos estén listos para la siguiente ronda
       setTimeout(() => {
         setGameState("ready");
+        // Actualizamos el balance desde la API al final de la ronda
+        fetchUserBalance();
       }, 3000);
     });
 
     socketConnection.on('playerUpdate', (playerData) => {
       console.log('Actualización de jugador:', playerData);
+      // Mantener actualización visual en tiempo real del saldo durante la ronda
       if (playerData.nickname === userName) {
         setPlayerBalance(playerData.balance);
       }
@@ -416,6 +454,9 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
       // Forzar el cambio de estado a "finished" inmediatamente
       setGameState("finished");
       setGameResult(endData);
+      
+      // Obtener balance final desde la API
+      fetchUserBalance();
       
       // Almacenar en sessionStorage para persistencia incluso si hay problemas
       try {
@@ -585,6 +626,8 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
     });
     
     console.log("Apuesta enviada:", bidAmount);
+    // Al hacer una apuesta, actualizamos el último apostador
+    setLastBidder(userName);
   };
 
   // Manejar el botón de "Listo para siguiente ronda"
@@ -651,7 +694,21 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
         <Notification />
         
         <div className="game-results">
-          <h2>Ganador: {gameResult.winner}</h2>
+          <div className="winner-announcement">
+            <h2 className="winner-title">Ganador: <span className="winner-name">{gameResult.winner}</span></h2>
+            
+            {/* Añadir confeti para el ganador */}
+            {gameResult.winner === userName && (
+              <ReactConfetti
+                width={windowSize.width}
+                height={windowSize.height}
+                recycle={false}
+                numberOfPieces={300}
+                gravity={0.3}
+                colors={['#f44336', '#e91e63', '#9c27b0', '#3f51b5', '#2196f3', '#4CAF50', '#FFEB3B', '#FFC107']}
+              />
+            )}
+          </div>
           
           <div className="final-scores">
             <h3>Puntuaciones finales:</h3>
@@ -661,18 +718,63 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
                   <th>Jugador</th>
                   <th>Puntuación</th>
                   <th>Saldo final</th>
+                  <th>Beneficio total</th>
                 </tr>
               </thead>
               <tbody>
-                {gameResult.finalScores && gameResult.finalScores.map((player, index) => (
-                  <tr key={index} className={player.nickname === gameResult.winner ? 'winner-row' : ''}>
-                    <td>{player.nickname}</td>
-                    <td>{player.score}</td>
-                    <td>${player.balance}</td>
-                  </tr>
-                ))}
+                {gameResult.finalScores && gameResult.finalScores.map((player, index) => {
+                  // Calcular beneficio total (puntuación es el beneficio acumulado)
+                  const initialBalance = 2000; // Usar valor por defecto o ajustar según tu lógica
+                  const totalProfit = player.score;
+                  
+                  return (
+                    <tr 
+                      key={index} 
+                      className={`player-row ${player.nickname === gameResult.winner ? 'winner-row' : ''}`}
+                    >
+                      <td className="player-name-cell">
+                        <div className="player-avatar-small">
+                          {player.nickname.charAt(0).toUpperCase()}
+                        </div>
+                        {player.nickname}
+                        {player.nickname === gameResult.winner && 
+                          <span className="winner-crown">👑</span>
+                        }
+                      </td>
+                      <td>{player.score}</td>
+                      <td>${player.balance}</td>
+                      <td className={totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}>
+                        {totalProfit >= 0 ? '+' : ''}{totalProfit}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
+          </div>
+        </div>
+        
+        <div className="players-final-list">
+          <h3>Jugadores</h3>
+          <div className="players-grid">
+            {gameResult.finalScores && gameResult.finalScores.map((player, index) => (
+              <div 
+                key={index} 
+                className={`player-card ${player.nickname === gameResult.winner ? 'winner-card' : ''}`}
+              >
+                <div className="player-avatar">
+                  {player.nickname.charAt(0).toUpperCase()}
+                </div>
+                <div className="player-details">
+                  <span className="player-name">
+                    {player.nickname} 
+                    {player.nickname === gameResult.winner && <span className="winner-badge">👑</span>}
+                  </span>
+                  <span className="player-balance-small">${player.balance}</span>
+                  <span className="player-score">Puntos: {player.score}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
         
@@ -863,31 +965,59 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
         </div>
       )}
       </div>
-      <div className="players-list">
-        <h3>Jugadores</h3>
-        <div className="players-grid">
+
+      {/* NUEVA SECCIÓN DE JUGADORES CON SUS APUESTAS */}
+      <div className="players-bids-section">
+        <h3>Jugadores y Apuestas</h3>
+        <div className="players-bids-container">
           {players.map((player, index) => {
             const playerName = typeof player === 'string' ? player : player.name;
             const playerBal = typeof player === 'object' && player.balance ? player.balance : null;
             const playerScore = typeof player === 'object' && player.score ? player.score : null;
-            const isPlayerReady = gameState === "ready" && readyPlayers.includes(playerName);
+            const isCurrentBidder = playerName === lastBidder;
+            const isReady = gameState === "ready" && readyPlayers.includes(playerName);
             
             return (
-              <div key={index} className={`player-card ${isPlayerReady ? 'player-ready' : ''}`}>
-                <div className="player-avatar">
-                  {playerName.charAt(0).toUpperCase()}
+              <div 
+                key={index} 
+                className={`player-bid-card ${isCurrentBidder ? 'current-bidder' : ''} ${isReady ? 'player-ready' : ''}`}
+              >
+                <div className="player-bid-header">
+                  <div className="player-avatar">
+                    {playerName.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="player-bid-info">
+                    <span className="player-name">
+                      {playerName}
+                      {isCurrentBidder && <span className="bidder-badge">🏆</span>}
+                      {isReady && <span className="ready-badge">✓</span>}
+                    </span>
+                    {playerBal !== null && (
+                      <span className="player-balance-small">Saldo: ${playerBal}</span>
+                    )}
+                    {playerScore !== null && (
+                      <span className="player-score">Puntos: {playerScore}</span>
+                    )}
+                  </div>
                 </div>
-                <div className="player-details">
-                  <span className="player-name">
-                    {playerName} {isPlayerReady && <span className="ready-check">✓</span>}
-                  </span>
-                  {playerBal !== null && (
-                    <span className="player-balance-small">${playerBal}</span>
-                  )}
-                  {playerScore !== null && (
-                    <span className="player-score">Puntos: {playerScore}</span>
-                  )}
-                </div>
+                
+                {/* Mostrar la apuesta actual si este jugador es el que está apostando */}
+                {isCurrentBidder && gameState === "bidding" && (
+                  <div className="current-bid-tag">
+                    Apuesta actual: ${currentBid}
+                  </div>
+                )}
+                
+                {/* Si estamos en estado revealing o ready, mostrar quien ganó la subasta */}
+                {(gameState === "revealing" || gameState === "ready") && revealedContainer && 
+                playerName === revealedContainer.winner && (
+                  <div className="winner-bid-tag">
+                    Ganó la subasta: ${revealedContainer.bidAmount}
+                    <div className="profit-tag">
+                      Beneficio: ${revealedContainer.profit}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
