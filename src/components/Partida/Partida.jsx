@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Partida.css";
 import ReactConfetti from "react-confetti";
 import azul1 from '../../assets/objects/azul/azul1.png';
@@ -35,6 +35,9 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
     width: window.innerWidth,
     height: window.innerHeight
   });
+
+  // Referencia para controlar el intervalo del timer
+  const timerIntervalRef = useRef(null);
 
   // Función para obtener el balance del usuario desde la API
   // Solo lo usamos al final de cada ronda para sincronizar con el servidor
@@ -418,18 +421,22 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
       console.log('Tiempo restante para la subasta:', seconds);
       setCountdown(seconds);
       
-      // Iniciar un contador descendente
-      const interval = setInterval(() => {
+      // Limpiar cualquier intervalo existente antes de crear uno nuevo
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+      
+      // Iniciar un nuevo contador descendente y guardar su referencia
+      timerIntervalRef.current = setInterval(() => {
         setCountdown(prev => {
           if (prev <= 1) {
-            clearInterval(interval);
+            clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
-      
-      return () => clearInterval(interval);
     });
 
     socketConnection.on('playerLeftGame', (data) => {
@@ -551,6 +558,12 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
       
       clearInterval(syncCheckInterval);
       clearInterval(checkGameEndInterval);
+      
+      // Limpiar el intervalo del timer
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
       
       // Limpiar sessionStorage solo si no estamos en estado "finished"
       if (gameState !== "finished") {
@@ -724,7 +737,6 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
               <tbody>
                 {gameResult.finalScores && gameResult.finalScores.map((player, index) => {
                   // Calcular beneficio total (puntuación es el beneficio acumulado)
-                  const initialBalance = 2000; // Usar valor por defecto o ajustar según tu lógica
                   const totalProfit = player.score;
                   
                   return (
@@ -966,61 +978,123 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
       )}
       </div>
 
-      {/* NUEVA SECCIÓN DE JUGADORES CON SUS APUESTAS */}
-      <div className="players-bids-section">
-        <h3>Jugadores y Apuestas</h3>
-        <div className="players-bids-container">
-          {players.map((player, index) => {
-            const playerName = typeof player === 'string' ? player : player.name;
-            const playerBal = typeof player === 'object' && player.balance ? player.balance : null;
-            const playerScore = typeof player === 'object' && player.score ? player.score : null;
-            const isCurrentBidder = playerName === lastBidder;
-            const isReady = gameState === "ready" && readyPlayers.includes(playerName);
-            
-            return (
-              <div 
-                key={index} 
-                className={`player-bid-card ${isCurrentBidder ? 'current-bidder' : ''} ${isReady ? 'player-ready' : ''}`}
-              >
-                <div className="player-bid-header">
-                  <div className="player-avatar">
+      {/* SECCIÓN DE JUGADORES VISIBLE DURANTE TODA LA PARTIDA */}
+      <div className="players-bids-section players-section">
+        <h3>Jugadores</h3>
+        <div className="players-bids-container players-grid">
+          {players && players.length > 0 ? (
+            players.map((player, index) => {
+              const playerName = typeof player === 'string' ? player : player.name;
+              const playerBal = typeof player === 'object' && player.balance !== undefined ? player.balance : null;
+              const playerScore = typeof player === 'object' && player.score !== undefined ? player.score : 0;
+              const isCurrentBidder = playerName === lastBidder;
+              const isReady = gameState === "ready" && readyPlayers.includes(playerName);
+              const isRoundWinner = (gameState === "revealing" || gameState === "ready") && 
+                                  revealedContainer && playerName === revealedContainer.winner;
+              
+              return (
+                <div 
+                  key={index} 
+                  className={`player-bid-card player-card ${isCurrentBidder ? 'current-bidder' : ''} 
+                           ${isReady ? 'player-ready' : ''} 
+                           ${isRoundWinner ? 'round-winner' : ''}`}
+                  style={{
+                    display: 'flex',
+                    margin: '5px',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    backgroundColor: isRoundWinner ? 'rgba(60, 50, 20, 0.6)' : 'rgba(43, 45, 66, 0.8)',
+                    border: isRoundWinner ? '1px solid #e9a13d' : '1px solid #3d4263'
+                  }}
+                >
+                  <div className="player-avatar" style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: isRoundWinner ? '#e9a13d' : '#3d4263',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    marginRight: '10px'
+                  }}>
                     {playerName.charAt(0).toUpperCase()}
                   </div>
-                  <div className="player-bid-info">
-                    <span className="player-name">
+                  
+                  <div className="player-details" style={{
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <span className="player-name" style={{
+                      fontSize: '1.1rem',
+                      fontWeight: 'bold',
+                      color: '#ffffff',
+                      marginBottom: '4px'
+                    }}>
                       {playerName}
-                      {isCurrentBidder && <span className="bidder-badge">🏆</span>}
-                      {isReady && <span className="ready-badge">✓</span>}
+                      {isCurrentBidder && <span className="bidder-badge" style={{marginLeft: '5px'}}>🏆</span>}
+                      {isRoundWinner && <span className="winner-badge" style={{marginLeft: '5px'}}>👑</span>}
+                      {isReady && <span className="ready-badge" style={{marginLeft: '5px', color: '#4ad86e'}}>✓</span>}
                     </span>
+                    
                     {playerBal !== null && (
-                      <span className="player-balance-small">Saldo: ${playerBal}</span>
+                      <span className="player-balance-small" style={{
+                        fontSize: '0.9rem',
+                        color: '#b1b1cb'
+                      }}>
+                        ${playerBal}
+                      </span>
                     )}
-                    {playerScore !== null && (
-                      <span className="player-score">Puntos: {playerScore}</span>
+                    
+                    {playerScore !== null && playerScore !== 0 && (
+                      <span className="player-score-small" style={{
+                        fontSize: '0.9rem',
+                        color: '#fdd35c'
+                      }}>
+                        Puntos: {playerScore}
+                      </span>
                     )}
                   </div>
-                </div>
-                
-                {/* Mostrar la apuesta actual si este jugador es el que está apostando */}
-                {isCurrentBidder && gameState === "bidding" && (
-                  <div className="current-bid-tag">
-                    Apuesta actual: ${currentBid}
-                  </div>
-                )}
-                
-                {/* Si estamos en estado revealing o ready, mostrar quien ganó la subasta */}
-                {(gameState === "revealing" || gameState === "ready") && revealedContainer && 
-                playerName === revealedContainer.winner && (
-                  <div className="winner-bid-tag">
-                    Ganó la subasta: ${revealedContainer.bidAmount}
-                    <div className="profit-tag">
-                      Beneficio: ${revealedContainer.profit}
+                  
+                  {/* Información adicional sobre apuestas y ganancias */}
+                  {isCurrentBidder && gameState === "bidding" && (
+                    <div className="bid-info" style={{
+                      marginLeft: 'auto',
+                      padding: '3px 6px',
+                      borderRadius: '4px',
+                      fontSize: '0.85rem',
+                      backgroundColor: 'rgba(74, 146, 216, 0.2)',
+                      color: '#4a92d8'
+                    }}>
+                      ${currentBid}
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  )}
+                  
+                  {isRoundWinner && revealedContainer && (
+                    <div className="winner-info" style={{
+                      marginLeft: 'auto',
+                      padding: '3px 6px',
+                      borderRadius: '4px',
+                      fontSize: '0.85rem',
+                      backgroundColor: 'rgba(233, 161, 61, 0.2)',
+                      color: '#e9a13d'
+                    }}>
+                      <div className="profit-info" style={{
+                        fontWeight: 'bold',
+                        color: revealedContainer.profit >= 0 ? '#4ad86e' : '#ff5c5c'
+                      }}>
+                        {revealedContainer.profit >= 0 ? '+' : ''}{revealedContainer.profit}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div style={{color: 'white', padding: '10px'}}>No hay jugadores disponibles</div>
+          )}
         </div>
       </div>
 

@@ -131,7 +131,7 @@ const Lobby = () => {
     }
   }, [accounts, inProgress, fetchUserData]);
 
-  // Fetch lobbies from the API
+  // Fetch lobbies from the API - VERSIÓN CORREGIDA
   const fetchLobbies = async () => {
     setIsLoadingLobbies(true);
     setLoadingError(null);
@@ -149,9 +149,8 @@ const Lobby = () => {
         throw new Error(`Error al cargar lobbies: ${response.status}`);
       }
       
-
       const data = await response.json();
-      console.log("Lobbies cargados:", data);
+      console.log("Lobbies cargados desde API:", data);
       
       // Transform API data to match local lobby structure
       const formattedLobbies = data.map((lobby, index) => ({
@@ -169,7 +168,21 @@ const Lobby = () => {
         playersList: lobby.jugadores
       }));
       
+      // Sincronizar lobbies locales con los del servidor
+      // Un lobby local debe ser eliminado si ya no existe en los datos de la API
+      const existingLobbyNames = data.map(lobby => lobby.nombre);
+      
+      // Filtra los lobbies locales para mantener solo los que aún existen en el servidor
+      const updatedLocalLobbies = lobbies.filter(localLobby => {
+        // Si es un lobby creado por el propio usuario, verificamos si existe en el servidor
+        return existingLobbyNames.includes(localLobby.name);
+      });
+      
+      // Actualiza los estados
       setApiLobbies(formattedLobbies);
+      setLobbies(updatedLocalLobbies); // Actualiza lobbies locales
+      
+      console.log("Lobbies locales sincronizados:", updatedLocalLobbies);
     } catch (error) {
       console.error("Error fetching lobbies:", error);
       setLoadingError(error.message);
@@ -182,6 +195,20 @@ const Lobby = () => {
   useEffect(() => {
     fetchLobbies();
   }, []);
+
+  // Actualización periódica de lobbies cuando estamos en la vista principal
+  useEffect(() => {
+    // Solo configurar el intervalo si no estamos en una vista de lobby full screen
+    if (!selectedLobby) {
+      // Configurar un intervalo para refrescar los lobbies cada 10 segundos
+      const refreshInterval = setInterval(() => {
+        fetchLobbies();
+      }, 10000); // 10 segundos
+      
+      // Limpiar el intervalo al desmontar o cambiar de vista
+      return () => clearInterval(refreshInterval);
+    }
+  }, [selectedLobby]);
   
   // Handle sign out
   const handleSignOut = () => {
@@ -466,6 +493,37 @@ const Lobby = () => {
           newSocket.disconnect();
         });
         
+        // Eventos adicionales para manejar lobbies eliminados
+        newSocket.on('lobbyDeleted', (data) => {
+          console.log('Lobby eliminado:', data);
+          alert(`El lobby "${lobby.name}" ha sido eliminado.`);
+          setVerifyingPassword(false);
+          newSocket.disconnect();
+          
+          // Eliminar el lobby del estado local
+          setLobbies(prevLobbies => 
+            prevLobbies.filter(l => l.name !== lobby.name)
+          );
+          
+          // Actualizar lista de lobbies
+          fetchLobbies();
+        });
+        
+        newSocket.on('lobbyNotFound', (data) => {
+          console.log('Lobby no encontrado:', data);
+          alert(`El lobby "${lobby.name}" no existe o ha sido eliminado.`);
+          setVerifyingPassword(false);
+          newSocket.disconnect();
+          
+          // Eliminar el lobby del estado local
+          setLobbies(prevLobbies => 
+            prevLobbies.filter(l => l.name !== lobby.name)
+          );
+          
+          // Actualizar lista de lobbies
+          fetchLobbies();
+        });
+        
         // Si no hay evento de conexión después de 5 segundos, mostrar error
         setTimeout(() => {
           if (newSocket.connected === false && !selectedLobby) {
@@ -638,6 +696,31 @@ const Lobby = () => {
           // Desconectar socket en caso de error
           newSocket.disconnect();
         });
+
+        // Eventos adicionales para manejar lobbies eliminados
+        newSocket.on('lobbyDeleted', (data) => {
+          console.log('Lobby eliminado:', data);
+          setPasswordError(`El lobby "${selectedLobbyForJoin.name}" ha sido eliminado.`);
+          setVerifyingPassword(false);
+          newSocket.disconnect();
+          
+          // Eliminar el lobby del estado local
+          setLobbies(prevLobbies => 
+            prevLobbies.filter(l => l.name !== selectedLobbyForJoin.name)
+          );
+        });
+        
+        newSocket.on('lobbyNotFound', (data) => {
+          console.log('Lobby no encontrado:', data);
+          setPasswordError(`El lobby "${selectedLobbyForJoin.name}" no existe o ha sido eliminado.`);
+          setVerifyingPassword(false);
+          newSocket.disconnect();
+          
+          // Eliminar el lobby del estado local
+          setLobbies(prevLobbies => 
+            prevLobbies.filter(l => l.name !== selectedLobbyForJoin.name)
+          );
+        });
         
         // Si no hay evento de conexión después de 5 segundos, mostrar error
         setTimeout(() => {
@@ -675,12 +758,25 @@ const Lobby = () => {
     }
   };
 
-  // Handle closing the fullscreen view
+  // Handle closing the fullscreen view - VERSIÓN CORREGIDA
   const handleCloseLobbyView = () => {
     // No es necesario manejar la desconexión aquí ya que ahora se maneja dentro del componente LobbyFullScreenView
     setSelectedLobby(null);
+    
+    // Asegurarse de que el socket esté desconectado al salir
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+    }
+    
     // Refresh lobbies when returning from a lobby view
     fetchLobbies();
+    
+    // Ejecutar otra verificación después de un breve retraso
+    // para asegurarse de que la lista se actualice correctamente
+    setTimeout(() => {
+      fetchLobbies();
+    }, 1000);
   };
 
   // Añade un efecto para limpiar la conexión al desmontar el componente
