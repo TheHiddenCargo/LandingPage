@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState, useCallback} from "react";
 import {useFetch} from "../../personalHooks/useFetch";
 import blueGuy from "../../assets/gamerIcons/blueGuy.png";
 import greenGuy from "../../assets/gamerIcons/greenGuy.png";
@@ -87,13 +87,13 @@ const UserDialog = ({toCreate,email,onClose}) => {
         bear
     ];
 
-    const handleClose = () => {
+    // Use useCallback to stabilize the handleClose function reference
+    const handleClose = useCallback(() => {
         if (dialogRef.current) {
             dialogRef.current.close();
             if (!toCreate && onClose) onClose();
-
         }
-    };
+    }, [toCreate, onClose]);
 
     const handleSubmit = () => {
         if(toCreate) setCreateUser(true);
@@ -106,47 +106,46 @@ const UserDialog = ({toCreate,email,onClose}) => {
         }
     };
 
-
-
     useEffect(() => {
-        if (dialogRef) {
+        if (dialogRef.current) {
+            // Store a reference to the current dialog element
+            const dialog = dialogRef.current;
 
             if(toCreate){
                 setTitle("Creación de Usuario");
                 setSubmitButton("Crear");
             }else{
                 setSubmitButton("Actualizar");
-
             }
-            dialogRef.current.showModal();
+
+            dialog.showModal();
+            
             const handleCancel = (event) => {
                 event.preventDefault();
             };
-            dialogRef.current.addEventListener('cancel', handleCancel);
+            
+            dialog.addEventListener('cancel', handleCancel);
 
             return () => {
-                if (dialogRef.current) {
-                    dialogRef.current.removeEventListener('cancel', handleCancel);
-                }
+                // Use the stored reference in the cleanup
+                dialog.removeEventListener('cancel', handleCancel);
             };
         }
-
-    }, []);
+    }, [toCreate]); // Added toCreate as a dependency
 
     /*Handle GET*/
-
     useEffect(() => {
         if(dataUser && statusUser === 200){
             setNewNickname(dataUser["nickname"]);
             setIcon(dataUser["photo"]);
             setTitle(`Actualizando a: ${dataUser["nickname"]}`);
         }
-    }, [dataUser,statusUser]);
+    }, [dataUser, statusUser]);
 
     /*Handle Create*/
     useEffect(() => {
-        console.log("Creating")
-        console.log(loadingCreate,statusCreate,createUser);
+        console.log("Creating");
+        console.log(loadingCreate, statusCreate, createUser);
         if(loadingCreate === false && createUser && statusCreate === 201){
             setCreateUser(false);
             handleClose();
@@ -156,29 +155,26 @@ const UserDialog = ({toCreate,email,onClose}) => {
             setCreateUser(false);
             setIcon(null);
         }
-    }, [loadingCreate,statusCreate]);
-
+    }, [loadingCreate, statusCreate, createUser, handleClose]); // Added missing dependencies
 
     /*Handle Update*/
-
     useEffect(() => {
         console.log("Procesando actualizacion");
-        console.log(newNickname,icon);
-        console.log(loadingNickname,loadingIcon,statusIcon,statusNickname);
+        console.log(newNickname, icon);
+        console.log(loadingNickname, loadingIcon, statusIcon, statusNickname);
         if(!loadingIcon && !loadingNickname && statusNickname === 200 && statusIcon === 200){
             setUpdateUser(false);
             handleClose();
         }
-        else{
-            setErrorNickname(`Error nickname: ${statusNickname}`);
-            setErrorIcon(`Error Icon: ${statusIcon}`);
+        else if (statusNickname !== null || statusIcon !== null) {
+            if (statusNickname !== 200 && statusNickname !== null) {
+                setErrorNickname(`Error nickname: ${statusNickname}`);
+            }
+            if (statusIcon !== 200 && statusIcon !== null) {
+                setErrorIcon(`Error Icon: ${statusIcon}`);
+            }
         }
-    }, [loadingNickname,loadingIcon,statusIcon,statusNickname]);
-
-
-
-
-
+    }, [loadingNickname, loadingIcon, statusIcon, statusNickname, handleClose, newNickname, icon]); // Added missing dependencies
 
     return(
         <dialog className="user-creation" ref={dialogRef}>
@@ -201,7 +197,6 @@ const UserDialog = ({toCreate,email,onClose}) => {
                                 alt={index}
                             />
                         </div>
-
                     ))}
                 </div>
                 <div className="buttons">
@@ -209,15 +204,11 @@ const UserDialog = ({toCreate,email,onClose}) => {
 
                     {!toCreate && <button onClick={handleClose}>Cancel</button>}
                     {!toCreate && statusIcon && errorIcon !==null && <h2>{errorIcon}</h2>}
-                    {!toCreate && statusNickname &&errorNickname !==null && <h2>{errorNickname}</h2>}
-
+                    {!toCreate && statusNickname && errorNickname !==null && <h2>{errorNickname}</h2>}
                 </div>
             </div>
             {statusCreate !== 201 && <h2>{errorCreate}</h2>}
         </dialog>
-
-
-
     );
 };
 

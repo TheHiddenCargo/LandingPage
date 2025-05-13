@@ -132,83 +132,75 @@ const Lobby = () => {
   }, [accounts, inProgress, fetchUserData]);
 
   // Fetch lobbies from the API - VERSIÓN CORREGIDA
-  const fetchLobbies = async () => {
+   // Fetch and synchronize lobbies from API
+  const fetchLobbies = useCallback(async () => {
     setIsLoadingLobbies(true);
     setLoadingError(null);
-    
+
     try {
-      const response = await fetch("https://thehiddencargo1.azure-api.net/lobbies/lobbies/listar", {
-        method: 'GET',
-        headers: {
-          'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY,
-          'accept': '*/*'
+      const response = await fetch(
+        'https://thehiddencargo1.azure-api.net/lobbies/lobbies/listar',
+        {
+          method: 'GET',
+          headers: {
+            'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY,
+            accept: '*/*',
+          },
         }
-      });
-      
+      );
+
       if (!response.ok) {
         throw new Error(`Error al cargar lobbies: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      console.log("Lobbies cargados desde API:", data);
-      
-      // Transform API data to match local lobby structure
+      console.log('Lobbies cargados desde API:', data);
+
+      // Map API data to local structure
       const formattedLobbies = data.map((lobby, index) => ({
-        id: `api-${index}-${Date.now()}`, // Generate unique ID
+        id: `api-${index}-${Date.now()}`,
         name: lobby.nombre,
         password: lobby.contraseña,
         gameMode: lobby.modoDeJuego,
         rounds: lobby.numeroDeRondas,
         players: lobby.maxJugadoresConectados,
         connectedPlayers: lobby.jugadoresConectados,
-        host: lobby.jugadores[0] || "Desconocido",
+        host: lobby.jugadores[0] || 'Desconocido',
         createdAt: new Date().toISOString(),
         isFromApi: true,
         readyPlayers: lobby.jugadoresListos,
-        playersList: lobby.jugadores
+        playersList: lobby.jugadores,
       }));
-      
-      // Sincronizar lobbies locales con los del servidor
-      // Un lobby local debe ser eliminado si ya no existe en los datos de la API
-      const existingLobbyNames = data.map(lobby => lobby.nombre);
-      
-      // Filtra los lobbies locales para mantener solo los que aún existen en el servidor
-      const updatedLocalLobbies = lobbies.filter(localLobby => {
-        // Si es un lobby creado por el propio usuario, verificamos si existe en el servidor
-        return existingLobbyNames.includes(localLobby.name);
-      });
-      
-      // Actualiza los estados
+
+      // Nombres existentes en el API
+      const existingLobbyNames = data.map((lobby) => lobby.nombre);
+
+      // Filtrar lobbies locales existentes
+      setLobbies((prev) =>
+        prev.filter((local) => existingLobbyNames.includes(local.name))
+      );
       setApiLobbies(formattedLobbies);
-      setLobbies(updatedLocalLobbies); // Actualiza lobbies locales
-      
-      console.log("Lobbies locales sincronizados:", updatedLocalLobbies);
+      console.log('Lobbies locales sincronizados:', formattedLobbies);
     } catch (error) {
-      console.error("Error fetching lobbies:", error);
+      console.error('Error fetching lobbies:', error);
       setLoadingError(error.message);
     } finally {
       setIsLoadingLobbies(false);
     }
-  };
-  
-  // Load lobbies on initial component mount
-  useEffect(() => {
-    fetchLobbies();
   }, []);
 
-  // Actualización periódica de lobbies cuando estamos en la vista principal
+  // Cargar lobbies al montar el componente
   useEffect(() => {
-    // Solo configurar el intervalo si no estamos en una vista de lobby full screen
+    fetchLobbies();
+  }, [fetchLobbies]);
+
+  // Actualización periódica cada 10s (solo si no hay lobby seleccionado)
+  useEffect(() => {
     if (!selectedLobby) {
-      // Configurar un intervalo para refrescar los lobbies cada 10 segundos
-      const refreshInterval = setInterval(() => {
-        fetchLobbies();
-      }, 10000); // 10 segundos
-      
-      // Limpiar el intervalo al desmontar o cambiar de vista
-      return () => clearInterval(refreshInterval);
+      const intervalId = setInterval(fetchLobbies, 10000);
+      return () => clearInterval(intervalId);
     }
-  }, [selectedLobby]);
+  }, [selectedLobby, fetchLobbies]);
   
   // Handle sign out
   const handleSignOut = () => {

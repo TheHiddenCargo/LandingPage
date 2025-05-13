@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import "./Partida.css";
 import ReactConfetti from "react-confetti";
 import azul1 from '../../assets/objects/azul/azul1.png';
@@ -41,7 +41,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
 
   // Función para obtener el balance del usuario desde la API
   // Solo lo usamos al final de cada ronda para sincronizar con el servidor
-  const fetchUserBalance = async () => {
+  const fetchUserBalance = useCallback(async () => {
     try {
       console.log('Obteniendo balance actualizado para:', userName);
       const response = await fetch(`https://thehiddencargo1.azure-api.net/creation/polling/users/nickname/${userName}/balance`, {
@@ -68,7 +68,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
     } catch (error) {
       console.error('Error al obtener el saldo actualizado:', error);
     }
-  };
+  }, [userName]);
 
   // useEffect para obtener el saldo inicial del usuario usando fetch
   useEffect(() => {
@@ -578,7 +578,7 @@ const Partida = ({ onExit, socketConnection, lobbyData, userName }) => {
         }
       }
     };
-  }, [socketConnection, userName, currentRound, totalRounds, gameState]);
+  }, [socketConnection, userName, currentRound, totalRounds, gameState, fetchUserBalance]);
 
   const handleExit = () => {
     // Limpiar datos de sesión al salir

@@ -1,6 +1,5 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState, useCallback} from "react";
 import "../../styles/UserBar.css"
-import io from 'socket.io-client';
 import PropTypes from "prop-types";
 import UserDialog from "./UserDialog";
 
@@ -26,8 +25,8 @@ function UserBar ({email}) {
     // API Key para Azure API Management
     const API_KEY = "b553314cb92447a6bb13871a44b16726";
 
-    // Función para realizar el polling de información del usuario
-    const pollUserInfo = async () => {
+    // Función para realizar el polling de información del usuario (con useCallback)
+    const pollUserInfo = useCallback(async () => {
         try {
             if (!infoPollingActive.current) return;
 
@@ -66,10 +65,10 @@ function UserBar ({email}) {
                 setTimeout(pollUserInfo, 5000);
             }
         }
-    };
+    }, [email, API_BASE_URL, API_KEY]);
 
-    // Función para realizar el polling del balance
-    const pollUserBalance = async () => {
+    // Función para realizar el polling del balance (con useCallback)
+    const pollUserBalance = useCallback(async () => {
         try {
             if (!balancePollingActive.current) return;
 
@@ -107,7 +106,7 @@ function UserBar ({email}) {
                 setTimeout(pollUserBalance, 5000);
             }
         }
-    };
+    }, [email, API_BASE_URL, API_KEY]);
 
     // Iniciar los pollings cuando el componente se monta
     useEffect(() => {
@@ -127,7 +126,7 @@ function UserBar ({email}) {
             infoPollingActive.current = false;
             balancePollingActive.current = false;
         };
-    }, [email]);
+    }, [email, pollUserInfo, pollUserBalance]);
 
 
 
@@ -177,4 +176,4 @@ UserBar.propTypes = {
 };
 
 
-export  default  UserBar;
+export default UserBar;
