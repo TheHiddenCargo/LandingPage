@@ -1,0 +1,132 @@
+:root{
+    --color1: #FFFECB;
+    --color2: #DBCBD8;
+    --color3:#101935;
+    --color4: #698996;
+}
+
+/*Mobile-first*/
+
+h2{
+    font-family: "Press Start 2P", system-ui;
+    font-weight: 600;
+    font-style: normal;
+    line-height: 1.5;
+}
+dialog{
+    padding: var(--globalPadding);
+    width: 80%;
+    background: radial-gradient(circle, var(--color2), var(--color3));
+    border: none;
+    box-shadow: 10px 10px 10px var(--color2);
+
+}
+
+dialog h2{
+    font-size: 25px;
+    color: var(--color4);
+    margin-bottom: var(--globalSpace);
+}
+
+
+
+div.user-form input, div.user-form div.select-icons, div.user-form button
+{
+    margin-bottom: var(--globalSpace);
+}
+
+
+
+
+div.select-icons {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+div.icon-container {
+    flex-basis: 33.33%; /* Esto hará que haya 3 columnas */
+    padding: 5px; /* Espaciado entre imágenes */
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+}
+
+div.icon-container:hover{
+    cursor: crosshair;
+}
+
+div.icon-container:active{
+    opacity: 0.5;
+}
+
+
+div.icon-container img {
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s ease, opacity 0.7s ease;
+}
+
+
+
+div.icon-container img:hover {
+    transform: scale(1.2);
+}
+
+div.icon-container.selected img{
+    opacity: 0.3;
+}
+
+dialog div.user-form input,
+dialog div.user-form button{
+    font-size: 15px;
+    font-family: "Ubuntu", sans-serif;
+    font-weight: 300;
+    font-style: normal;
+    padding: 5px;
+
+
+    border-bottom: 2px solid var(--color2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    background-color: transparent;
+    color: var(--color1);
+}
+
+dialog div.user-form input[type="text"]::placeholder{
+    color: var(--color2);
+}
+
+dialog div.user-form button:disabled{
+    cursor: not-allowed;
+}
+dialog div.user-form button{
+    margin-right: var(--globalSpace);
+}
+
+/*Responsive*/
+
+@media (min-width: 700px){
+    dialog{
+        width: 60%;
+        box-shadow: 20px 20px 20px var(--color2);
+    }
+}
+
+@media (min-width: 1000px){
+    :root{
+        --globalPadding : 20px;
+        --globalSpace: 15px;
+    }
+
+    dialog h2{
+        font-size: 30px;
+    }
+
+    dialog div.user-form input,dialog div.user-form button {
+        font-size: 20px;
+        padding: 10px;
+    }
+}
+
+
+

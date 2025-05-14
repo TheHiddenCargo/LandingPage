@@ -1,4 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap'); 
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+
+:root{
+  --globalPadding : 15px;
+  --globalSpace: 10px;
+}
 
 .lobby-container {
     text-align: left;
@@ -20,6 +26,142 @@
   margin-left: auto;
   margin-right: auto; 
 }
+.reload-lobbies-btn {
+  background-color: #4e8cf7;
+  border: none;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reload-lobbies-btn:hover {
+  background-color: white;
+  color: black;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.password-dialog {
+  background-color: rgba(24, 24, 28, 1);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  padding: 24px;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.password-error {
+  background-color: rgba(210, 40, 40, 0.15);
+  border-left: 3px solid #d22828;
+  color: #ff6b6b;
+  padding: 10px 15px;
+  margin-top: 15px;
+  margin-right: 0;
+  margin-bottom: 15px;
+  margin-left: 0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+/* Ensure the input doesn't have a white background in dark mode */
+.lobby-input {
+  background-color: rgba(30, 30, 34, 1);
+  border: 1px solid rgba(80, 80, 80, 0.3);
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+  margin-right: 0;
+  margin-bottom: 16px;
+  margin-left: 0;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.lobby-input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.confirm-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.confirm-btn:hover {
+  background-color: #2980b9;
+}
+
+.confirm-btn:disabled {
+  background-color: #7f8c8d;
+  cursor: not-allowed;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 .lobby-subtitle {
   font-size: 14px;
@@ -35,11 +177,6 @@
   color: rgba(255, 255, 255, 0.8);
   margin-top: 30px; 
   margin-left: 150px;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
 }
 
 .create-lobby-btn {
@@ -297,9 +434,16 @@
   color: #e5e7eb;
 }
 
+label {
+  display: block;
+  text-align: center;
+  font-weight: bold;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
 /* Campo de entrada */
 .lobby-input {
-  width: 90%;
   padding: 10px;
   border-radius: 6px;
   border: none;
@@ -307,9 +451,11 @@
   font-size: 16px;
   background: #374151;
   color: white;
-  margin-bottom: 20px;
   text-align: center;
   transition: 0.3s;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .lobby-input::placeholder {
@@ -368,7 +514,10 @@
   background-color: rgba(76, 175, 80, 0.9);
   color: white;
   padding: 12px 20px;
-  margin: 10px auto;
+  margin-top: 10px;
+  margin-right: auto;
+  margin-bottom: 10px;
+  margin-left: auto;
   border-radius: 8px;
   text-align: center;
   max-width: 400px;
@@ -383,8 +532,26 @@
 
 /* Estilos para la sección de salas */
 .lobbies-section {
-  margin: 20px 0;
+  margin-top: 20px;
+  margin-right: 0;
+  margin-bottom: 0;
+  margin-left: 130px;
   padding: 0 20px;
+}
+
+.lobbies-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 20px;
+  margin-right: 0;
+  margin-bottom: 20px;
+  margin-left: -150px;
+}
+
+.loading-lobbies {
+  margin-left: 900px; 
 }
 
 .lobbies-list {
@@ -417,7 +584,10 @@
 
 .lobby-card p {
   color: #d1d5db;
-  margin: 5px 0;
+  margin-top: 5px;
+  margin-right: 0;
+  margin-bottom: 5px;
+  margin-left: 0;
   font-size: 14px;
 }
 
@@ -430,16 +600,10 @@
   margin-top: 10px;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .join-btn:hover {
   background-color: #3e8e41;
 }
-
-
-
-
-
-
-
 

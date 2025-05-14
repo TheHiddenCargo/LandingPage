@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
+
+/*Mobile First*/
+
+
+
+h2{
+    font-family: "Press Start 2P", system-ui;
+    font-weight: 600;
+    font-style: normal;
+    line-height: 1.5;
+}
+
+div.user-info{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+
+div.user-info div{
+    margin-bottom: var(--globalSpace);
+}
+
+div.user-info div.icon img.icon{
+   height: 50px;
+    width: auto;
+}
+
+div.user-info div.icon, div.user-info div.icon img.icon,
+div.user-info div.icon, div.user-info div.icon button{
+    clip-path: circle(50%);
+    shape-outside: circle(50%);
+}
+
+div.user-info div.icon, div.user-info div.icon button{
+    background-color: transparent;
+    border: none;
+}
+
+
+#Bienvenida *{
+    line-height: 1.2;
+}
+
+#balance{
+    display: flex;
+    border-radius: 30px;
+    background-color: #4e8cf7;
+    padding: 5px var(--globalPadding);
+    justify-content: center;
+    width: fit-content;
+}
+
+
+#balance p{
+    display: inline-block;
+    border-radius: 30px;
+    padding: 8px var(--globalPadding);
+    margin: 0 20px;
+    background-color: black;
+
+
+}
+
+/*Responsive*/
+
+@media (min-width: 750px){
+    div.user-info div.icon img.icon{
+        height: 80px;
+    }
+}
+
+@media(min-width: 785px){
+    div.user-info div.icon img.icon{
+        height: 100px;
+    }
+    div.user-info div{
+        margin-right: var(--globalSpace);
+    }
+}
+
