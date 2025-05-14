@@ -290,7 +290,7 @@ const Lobby = () => {
         setLobbies([...lobbies, newLobby]);
     
         // Establecer conexión de Socket.io
-        const newSocket = io("https://20.98.163.141:30000", {
+        const newSocket = io("https://hiddencargo.sbs:30000", {
           path: "/socket.io",
           transports: ['websocket', 'polling'],
           query: {
@@ -434,7 +434,7 @@ const Lobby = () => {
         // Establecer conexión de Socket.io
         console.log("Estableciendo conexión de socket...");
         
-        const newSocket = io("https://20.98.163.141:30000", {
+        const newSocket = io("https://hiddencargo.sbs:30000", {
           path: "/socket.io",
           transports: ['websocket', 'polling'],
           query: {
@@ -637,7 +637,7 @@ const Lobby = () => {
         console.log("Estableciendo conexión de socket...");
         
         // Establecer conexión de Socket.io con la URL correcta y configuración apropiada
-        const newSocket = io("https://20.98.163.141:30000", {
+        const newSocket = io("https://hiddencargo.sbs:30000", {
           path: "/socket.io",
           transports: ['websocket', 'polling'],
           query: {
