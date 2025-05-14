@@ -121,7 +121,6 @@ bidding-area {
 }
 
 .container-display {
-  position: center;
   margin-bottom: 30px;
   text-align: center;
   font-family: 'Press Start 2P', cursive;
@@ -1285,7 +1284,7 @@ bidding-area {
   color: #4ad86e;
 }
 
-.profit-info:has(negative) {
+.profit-info:has[negative] {
   color: #ff5c5c;
 }
 

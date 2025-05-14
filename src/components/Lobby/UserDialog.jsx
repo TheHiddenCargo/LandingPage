@@ -106,6 +106,15 @@ const UserDialog = ({toCreate,email,onClose}) => {
         }
     };
 
+    // Nuevo manejador de teclado para los iconos
+    const handleIconKeyDown = (e, iconMap) => {
+        // Seleccionar el icono si se presiona Enter o Space
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIcon(iconMap);
+        }
+    };
+
     useEffect(() => {
         if (dialogRef.current) {
             // Store a reference to the current dialog element
@@ -190,13 +199,19 @@ const UserDialog = ({toCreate,email,onClose}) => {
 
                 <div className="select-icons">
                     {icons.map((iconMap,index) => (
-                        <div className={`icon-container ${icon === iconMap ? 'selected' : ''}`}
-                             key={index} onClick={(() => setIcon(iconMap))}>
+                        <button 
+                            className={`icon-container ${icon === iconMap ? 'selected' : ''}`}
+                            key={index} 
+                            onClick={() => setIcon(iconMap)}
+                            onKeyDown={(e) => handleIconKeyDown(e, iconMap)}
+                            aria-label={`Seleccionar icono ${index + 1}`}
+                            type="button"
+                        >
                             <img
                                 src={iconMap}
-                                alt={index}
+                                alt={`Icono ${index + 1}`}
                             />
-                        </div>
+                        </button>
                     ))}
                 </div>
                 <div className="buttons">
