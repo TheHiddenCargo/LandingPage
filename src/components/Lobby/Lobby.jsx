@@ -37,23 +37,35 @@ const Lobby = () => {
   const [loadingError, setLoadingError] = useState(null);
   const [socket, setSocket] = useState(null);
   
+  // Añade log para verificar el email antes de la búsqueda
+  useEffect(() => {
+    console.log("Email actual:", email, "searchUser:", searchUser);
+  }, [email, searchUser]);
 
   const {data, loading, status} = useFetch(
       {
         url: "https://thehiddencargo1.azure-api.net/creation/users/" + email + "/info",
         method: 'GET',
         headers: {
-          'accept': '*/*'
+          'accept': '*/*',
+          'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY // Añadida cabecera API key
         }
-      }, [searchUser], searchUser === true);
+      }, [searchUser], searchUser === true && email !== null);
 
+  // AQUÍ ES DONDE SE DEBE VERIFICAR EL CÓDIGO 404
   useEffect(() => {
-    console.log("Iniciando", data, loading, status)
-    if (loading === false && status === 404) {
-      setCreateUser(true);
-    } else if (loading === false && status === 200) {
-      // Cambiado de nickName a nickname para coincidir con la estructura real de datos
-      setUserName(data.nickname);
+    console.log("Verificando usuario:", data, "loading:", loading, "status:", status);
+    
+    if (loading === false) {
+      // Si es 404 o cualquier código de error, establecer createUser a true
+      if (status === 404 || (status >= 400 && status < 600)) {
+        console.log("USUARIO NO ENCONTRADO - Mostrando diálogo de creación");
+        setCreateUser(true);
+      } else if (status === 200) {
+        console.log("Usuario encontrado:", data);
+        setUserName(data.nickname);
+        setCreateUser(false);
+      }
     }
   }, [loading, status, data]);
 
@@ -61,9 +73,13 @@ const Lobby = () => {
   
   // Function to acquire token and fetch user data
   const fetchUserData = useCallback(async () => {
-    if (!accounts || accounts.length === 0 || inProgress !== "none") return;
+    if (!accounts || accounts.length === 0 || inProgress !== "none") {
+      console.log("No hay cuentas disponibles o autenticación en progreso");
+      return;
+    }
 
     try {
+      console.log("Obteniendo token y datos de usuario...");
       const response = await instance.acquireTokenSilent({
         ...loginRequest,
         account: accounts[0],
@@ -76,11 +92,14 @@ const Lobby = () => {
       });
 
       const userData = await userDataResponse.json();
+      console.log("Datos de usuario obtenidos:", userData);
+      
       if (userData.mail) {
+        console.log("Email encontrado:", userData.mail);
         setEmail(userData.mail);
         setSearchUser(true);
         
-        // Además de buscar el email, hacemos una solicitud directa para obtener el nickname
+        // Solicitud directa para obtener el nickname
         try {
           const userInfoResponse = await fetch(`https://thehiddencargo1.azure-api.net/creation/users/${userData.mail}/info`, {
             method: 'GET',
@@ -90,18 +109,36 @@ const Lobby = () => {
             }
           });
           
+          console.log("Respuesta API:", userInfoResponse.status);
+          
           if (userInfoResponse.ok) {
             const userInfo = await userInfoResponse.json();
             console.log("Información de usuario obtenida:", userInfo);
-            setUserName(userInfo.nickname); // Cambiado de nickName a nickname
+            setUserName(userInfo.nickname);
+            setCreateUser(false);
+          } else if (userInfoResponse.status === 404) {
+            console.log("Usuario no encontrado, mostrando diálogo de creación");
+            setCreateUser(true);
+          } else {
+            console.log("Error al obtener información del usuario:", userInfoResponse.status);
+            setCreateUser(true);
           }
         } catch (infoError) {
           console.error("Error al obtener información del usuario:", infoError);
+          setCreateUser(true);
         }
       }
 
     } catch (error) {
-      if (error === "User does not exist") setCreateUser(true);
+      console.error("Error completo:", error);
+      
+      if (error.message === "User does not exist" || 
+          error.message?.includes("not found") || 
+          error.message?.includes("404")) {
+        console.log("Usuario no existe, mostrando diálogo de creación");
+        setCreateUser(true);
+      }
+      
       if (error instanceof InteractionRequiredAuthError) {
         console.log("Silent token acquisition failed, falling back to interactive method");
         try {
@@ -130,6 +167,11 @@ const Lobby = () => {
       return () => clearInterval(tokenRefreshTimer);
     }
   }, [accounts, inProgress, fetchUserData]);
+
+  // Monitorear el estado createUser
+  useEffect(() => {
+    console.log("Estado createUser cambiado a:", createUser);
+  }, [createUser]);
 
   // Fetch lobbies from the API - VERSIÓN CORREGIDA
    // Fetch and synchronize lobbies from API
@@ -797,7 +839,7 @@ const Lobby = () => {
   
   return (
       <>
-        {loading ? null :
+        {loading ? <div className="loading">Cargando información de usuario...</div> :
             <div className="lobby-container">
               <Sidebar onSignOut={handleSignOut}/>
               <header className="lobby-header">
@@ -1008,7 +1050,20 @@ const Lobby = () => {
                     </div>
                   </div>
               )}
-              {createUser && <UserDialog email={email} toCreate={true}/>}
+              
+              {/* CRUCIAL: UserDialog para creación de usuario */}
+              {createUser && email && (
+                <UserDialog 
+                  email={email} 
+                  toCreate={true} 
+                  onClose={() => {
+                    console.log("Cerrando diálogo de usuario");
+                    setCreateUser(false);
+                    // Volver a buscar el usuario después de crear
+                    setSearchUser(true);
+                  }}
+                />
+              )}
             </div>
         }
       </>

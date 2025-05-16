@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState, useCallback} from "react";
+import React, {useEffect, useRef, useState, useCallback, useMemo} from "react";
 import {useFetch} from "../../personalHooks/useFetch";
 import blueGuy from "../../assets/gamerIcons/blueGuy.png";
 import greenGuy from "../../assets/gamerIcons/greenGuy.png";
@@ -12,70 +12,20 @@ import bear from "../../assets/gamerIcons/bear.png";
 import PropTypes from "prop-types";
 import "../../styles/UserDialog.css"
 
-
-
-const UserDialog = ({toCreate,email,onClose}) => {
+const UserDialog = ({toCreate, email, onClose}) => {
     const [newNickname, setNewNickname] = useState('');
     const [icon, setIcon] = useState(null);
-    const[title, setTitle] = useState(null);
-    const[submitButton, setSubmitButton]= useState(null);
+    const [title, setTitle] = useState(null);
+    const [submitButton, setSubmitButton] = useState(null);
     const [createUser, setCreateUser] = useState(false);
     const [updateUser, setUpdateUser] = useState(false);
     const dialogRef = useRef(null);
     const [errorNickname, setErrorNickname] = useState(null);
     const [errorIcon, setErrorIcon] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-
-
-    /*Fetch to register User*/
-    const {loading:loadingCreate, status:statusCreate, error: errorCreate} = useFetch({
-        url: 'https://thehiddencargo1.azure-api.net/creation/users/register',
-        method: 'POST',
-        body: {
-            email: email,
-            nickName: newNickname,
-            balance : "5000",
-            icon : icon
-        }
-    },[createUser],createUser);
-
-    /*Fetch GET Information*/
-
-    const {data : dataUser, status: statusUser} = useFetch({
-       url:  `https://thehiddencargo1.azure-api.net/creation/users/${email}/info`,
-        method: 'GET',
-        headers: {
-           'accept': '*/*'
-        }
-    },[email],!toCreate && email);
-
-    /*Fetch para actualizar NickName*/
-
-    const {loading: loadingNickname, status:statusNickname} = useFetch({
-        url: 'https://thehiddencargo1.azure-api.net/creation/polling/users/update/nickname',
-        method: 'POST',
-        body: {
-            email: email,
-            newNickname : newNickname
-        }
-    },[updateUser],updateUser);
-
-    /*Fetch para actualizar icono*/
-
-    const {loading: loadingIcon, status:statusIcon} = useFetch({
-        url: 'https://thehiddencargo1.azure-api.net/creation/polling/users/update/photo',
-        method: 'POST',
-        body: {
-            email: email,
-            photo : icon
-        }
-    },[updateUser],updateUser);
-
-
-
-    /*Icons definition*/
-    const icons = [
+    // Memoizar el array de iconos para evitar recrearlo en cada renderizado
+    const icons = useMemo(() => [
         blueGuy,
         greenGuy,
         redGuy,
@@ -85,19 +35,77 @@ const UserDialog = ({toCreate,email,onClose}) => {
         wolf,
         dragon,
         bear
-    ];
+    ], []); // Array de dependencias vacío, solo se crea una vez
+
+    /*Fetch to register User*/
+    const {loading:loadingCreate, status:statusCreate, error: errorCreate} = useFetch({
+        url: 'https://thehiddencargo1.azure-api.net/creation/users/register',
+        method: 'POST',
+        body: {
+            email: email,
+            nickName: newNickname,
+            balance: "5000",
+            icon: icon
+        }
+    }, [createUser], createUser);
+
+    /*Fetch GET Information*/
+    const {data: dataUser, status: statusUser} = useFetch({
+        url: `https://thehiddencargo1.azure-api.net/creation/users/${email}/info`,
+        method: 'GET',
+        headers: {
+            'accept': '*/*',
+            'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY
+        }
+    }, [email], !toCreate && email);
+
+    /*Fetch para actualizar NickName*/
+    const {loading: loadingNickname, status:statusNickname} = useFetch({
+        url: 'https://thehiddencargo1.azure-api.net/creation/polling/users/update/nickname',
+        method: 'POST',
+        headers: {
+            'accept': '*/*',
+            'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY,
+            'Content-Type': 'application/json'
+        },
+        body: {
+            email: email,
+            newNickname: newNickname
+        }
+    }, [updateUser], updateUser);
+
+    /*Fetch para actualizar icono*/
+    const {loading: loadingIcon, status:statusIcon} = useFetch({
+        url: 'https://thehiddencargo1.azure-api.net/creation/polling/users/update/photo',
+        method: 'POST',
+        headers: {
+            'accept': '*/*',
+            'Ocp-Apim-Subscription-Key': process.env.REACT_APP_API_KEY,
+            'Content-Type': 'application/json'
+        },
+        body: {
+            email: email,
+            photo: icon
+        }
+    }, [updateUser], updateUser);
 
     // Use useCallback to stabilize the handleClose function reference
     const handleClose = useCallback(() => {
+        console.log("Cerrando diálogo de usuario");
         if (dialogRef.current) {
             dialogRef.current.close();
-            if (!toCreate && onClose) onClose();
+            if (onClose) onClose();
         }
-    }, [toCreate, onClose]);
+    }, [onClose]);
 
     const handleSubmit = () => {
-        if(toCreate) setCreateUser(true);
-        else setUpdateUser(true);
+        console.log("Enviando formulario", toCreate, "con nickname:", newNickname, "e icon:", icon);
+        setIsSubmitting(true);
+        if(toCreate) {
+            setCreateUser(true);
+        } else {
+            setUpdateUser(true);
+        }
     };
 
     const handleKeyDown = (e) => {
@@ -106,7 +114,7 @@ const UserDialog = ({toCreate,email,onClose}) => {
         }
     };
 
-    // Nuevo manejador de teclado para los iconos
+    // Manejador de teclado para los iconos
     const handleIconKeyDown = (e, iconMap) => {
         // Seleccionar el icono si se presiona Enter o Space
         if (e.key === 'Enter' || e.key === ' ') {
@@ -115,6 +123,7 @@ const UserDialog = ({toCreate,email,onClose}) => {
         }
     };
 
+    // Inicialización del diálogo
     useEffect(() => {
         if (dialogRef.current) {
             // Store a reference to the current dialog element
@@ -123,7 +132,11 @@ const UserDialog = ({toCreate,email,onClose}) => {
             if(toCreate){
                 setTitle("Creación de Usuario");
                 setSubmitButton("Crear");
-            }else{
+                // Establecer un valor predeterminado para el icono al crear
+                if (!icon && icons.length > 0) {
+                    setIcon(icons[0]);
+                }
+            } else {
                 setSubmitButton("Actualizar");
             }
 
@@ -140,7 +153,7 @@ const UserDialog = ({toCreate,email,onClose}) => {
                 dialog.removeEventListener('cancel', handleCancel);
             };
         }
-    }, [toCreate]); // Added toCreate as a dependency
+    }, [toCreate, icon, icons]);
 
     /*Handle GET*/
     useEffect(() => {
@@ -153,52 +166,81 @@ const UserDialog = ({toCreate,email,onClose}) => {
 
     /*Handle Create*/
     useEffect(() => {
-        console.log("Creating");
-        console.log(loadingCreate, statusCreate, createUser);
-        if(loadingCreate === false && createUser && statusCreate === 201){
-            setCreateUser(false);
-            handleClose();
+        console.log("Estado de creación:", loadingCreate, statusCreate, createUser);
+        if(!loadingCreate && createUser) {
+            if(statusCreate === 201){
+                console.log("Usuario creado exitosamente");
+                setCreateUser(false);
+                setIsSubmitting(false);
+                // Importante: esperar un breve momento antes de cerrar para asegurar que los datos se hayan guardado
+                setTimeout(() => {
+                    handleClose();
+                }, 500);
+            } else if(statusCreate >= 400) {
+                console.error("Error al crear usuario:", statusCreate, errorCreate);
+                //setNewNickname(newNickname); // Mantener el valor actual
+                setCreateUser(false);
+                setIsSubmitting(false);
+                // No resetear el icono para permitir reintento sin empezar de cero
+            }
         }
-        if(loadingCreate === false && createUser && statusCreate === 400) {
-            setNewNickname(null);
-            setCreateUser(false);
-            setIcon(null);
-        }
-    }, [loadingCreate, statusCreate, createUser, handleClose]); // Added missing dependencies
+    }, [loadingCreate, statusCreate, createUser, handleClose, errorCreate, newNickname]);
 
     /*Handle Update*/
     useEffect(() => {
-        console.log("Procesando actualizacion");
-        console.log(newNickname, icon);
-        console.log(loadingNickname, loadingIcon, statusIcon, statusNickname);
-        if(!loadingIcon && !loadingNickname && statusNickname === 200 && statusIcon === 200){
-            setUpdateUser(false);
-            handleClose();
-        }
-        else if (statusNickname !== null || statusIcon !== null) {
-            if (statusNickname !== 200 && statusNickname !== null) {
-                setErrorNickname(`Error nickname: ${statusNickname}`);
+        console.log("Procesando actualización:", loadingNickname, loadingIcon, statusIcon, statusNickname);
+        if(!loadingIcon && !loadingNickname && updateUser) {
+            if(statusNickname === 200 && statusIcon === 200){
+                console.log("Actualización exitosa");
+                setUpdateUser(false);
+                setIsSubmitting(false);
+                handleClose();
+            } else {
+                setIsSubmitting(false);
+                if (statusNickname !== 200 && statusNickname !== null) {
+                    setErrorNickname(`Error nickname: ${statusNickname}`);
+                }
+                if (statusIcon !== 200 && statusIcon !== null) {
+                    setErrorIcon(`Error Icon: ${statusIcon}`);
+                }
             }
-            if (statusIcon !== 200 && statusIcon !== null) {
-                setErrorIcon(`Error Icon: ${statusIcon}`);
-            }
         }
-    }, [loadingNickname, loadingIcon, statusIcon, statusNickname, handleClose, newNickname, icon]); // Added missing dependencies
+    }, [loadingNickname, loadingIcon, statusIcon, statusNickname, handleClose, updateUser]);
+
+    // Seleccionar icono por defecto si no hay ninguno seleccionado
+    useEffect(() => {
+        if (toCreate && !icon && icons.length > 0) {
+            console.log("Seleccionando icono por defecto");
+            setIcon(icons[0]);
+        }
+    }, [toCreate, icon, icons]);
+    
+    // Debug para verificar estado de componente
+    useEffect(() => {
+        console.log("Estado actual:", {
+            newNickname,
+            icon,
+            createUser,
+            updateUser,
+            isSubmitting
+        });
+    }, [newNickname, icon, createUser, updateUser, isSubmitting]);
 
     return(
         <dialog className="user-creation" ref={dialogRef}>
-            <h2>{title}</h2>
+            <h2>{title || (toCreate ? "Creación de Usuario" : "Actualizar Usuario")}</h2>
             <div className="user-form">
                 <input
                     type="text"
-                    placeholder={newNickname}
-                    onChange={(e)=>{setNewNickname(e.target.value)}}
+                    placeholder="Ingresa tu nickname"
+                    value={newNickname}
+                    onChange={(e) => setNewNickname(e.target.value)}
                     onKeyDown={handleKeyDown}
                     maxLength="12"
                 />
 
                 <div className="select-icons">
-                    {icons.map((iconMap,index) => (
+                    {icons.map((iconMap, index) => (
                         <button 
                             className={`icon-container ${icon === iconMap ? 'selected' : ''}`}
                             key={index} 
@@ -215,22 +257,32 @@ const UserDialog = ({toCreate,email,onClose}) => {
                     ))}
                 </div>
                 <div className="buttons">
-                    <button disabled={!icon || !newNickname} onClick={handleSubmit}>{submitButton}</button>
+                    <button 
+                        disabled={(!icon || !newNickname || isSubmitting)} 
+                        onClick={handleSubmit}
+                    >
+                        {isSubmitting ? "Procesando..." : submitButton || (toCreate ? "Crear" : "Actualizar")}
+                    </button>
 
-                    {!toCreate && <button onClick={handleClose}>Cancel</button>}
+                    {!toCreate && <button onClick={handleClose} disabled={isSubmitting}>Cancelar</button>}
                     {!toCreate && statusIcon && errorIcon !==null && <h2>{errorIcon}</h2>}
                     {!toCreate && statusNickname && errorNickname !==null && <h2>{errorNickname}</h2>}
                 </div>
             </div>
-            {statusCreate !== 201 && <h2>{errorCreate}</h2>}
+            {statusCreate !== 201 && statusCreate !== null && statusCreate !== 0 && errorCreate && (
+                <div className="error-message">
+                    <h2>Error al crear usuario: {statusCreate}</h2>
+                    <p>{errorCreate}</p>
+                </div>
+            )}
         </dialog>
     );
 };
 
 UserDialog.propTypes = {
-    toCreate : PropTypes.bool.isRequired,
+    toCreate: PropTypes.bool.isRequired,
     email: PropTypes.string.isRequired,
-    onClose : PropTypes.func
+    onClose: PropTypes.func
 };
 
 export default UserDialog;

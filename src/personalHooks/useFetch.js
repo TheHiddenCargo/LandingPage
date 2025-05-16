@@ -1,87 +1,68 @@
-import {useState, useEffect, useRef} from "react";
+import {useState, useEffect} from "react";
 
-export function useFetch(config, dependencies = [], condition = true) {
+export function useFetch(config, states = [], condition = true) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [controller, setController] = useState(null);
     const [status, setStatus] = useState(null);
     
-    // Use refs to store the previous values for comparison
-    const prevConfigRef = useRef();
-    const prevDependenciesRef = useRef();
-    const prevConditionRef = useRef();
-    
-    // Stringify dependencies for comparison (removes the need for spread in deps array)
-    const dependenciesString = JSON.stringify(dependencies);
-    
+    // Extraer propiedades del config
+    const {
+        url,
+        method,
+        headers = {}, // Headers por defecto vacíos
+        body = null   // Body opcional
+    } = config;
+
     useEffect(() => {
-        // Check if we need to fetch based on condition or changes
-        const shouldFetch = condition && (
-            // First run or condition changed from false to true
-            prevConditionRef.current !== condition ||
-            // Config changed
-            JSON.stringify(prevConfigRef.current) !== JSON.stringify(config) ||
-            // Dependencies changed
-            JSON.stringify(prevDependenciesRef.current) !== dependenciesString
-        );
-        
-        // Update refs with current values for next comparison
-        prevConfigRef.current = config;
-        prevDependenciesRef.current = dependencies;
-        prevConditionRef.current = condition;
-        
-        // Skip fetch if not needed
-        if (!shouldFetch) {
-            return;
+        // Solo realizar la petición si la condición es verdadera y hay una URL
+        if (condition && url) {
+            const abortController = new AbortController();
+            setController(abortController);
+            setLoading(true);
+            
+            fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY,
+                    ...headers // Permite sobreescribir o añadir headers
+                },
+                ...(body && method !== 'GET' && method !== 'HEAD'
+                    ? { body: JSON.stringify(body) }
+                    : {}),
+                signal: abortController.signal
+            })
+            .then((response) => {
+                console.log(url);
+                setStatus(response.status);
+                
+                // Verificar si la respuesta tiene contenido
+                if (response.status === 204) {
+                    return null; // No content
+                }
+                
+                // Intenta parsear como JSON
+                return response.json().catch(e => {
+                    console.warn("Error parsing JSON:", e);
+                    return null;
+                });
+            })
+            .then((responseData) => setData(responseData))
+            .catch((error) => {
+                if (error.name === "AbortError") {
+                    console.log("Request Cancelled");
+                } else {
+                    setError(error);
+                }
+            })
+            .finally(() => setLoading(false));
+            
+            return () => abortController.abort();
         }
-        
-        const {
-            url,
-            method,
-            headers = {}, // Default empty headers
-            body = null   // Optional body
-        } = config;
-        
-        // Only proceed if we have a URL
-        if (!url) {
-            return;
-        }
-        
-        // Create abort controller
-        const abortController = new AbortController();
-        setController(abortController);
-        setLoading(true);
-        
-        fetch(url, {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-                "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY,
-                ...headers // Allow overriding or adding headers
-            },
-            ...(body && method !== 'GET' && method !== 'HEAD'
-                ? { body: JSON.stringify(body) }
-                : {}),
-            signal: abortController.signal
-        })
-        .then((response) => {
-            console.log(url);
-            setStatus(response.status);
-            return response.json();
-        })
-        .then((data) => setData(data))
-        .catch((error) => {
-            if (error.name === "AbortError") {
-                console.log("Request Cancelled");
-            } else {
-                setError(error);
-            }
-        })
-        .finally(() => setLoading(false));
-        
-        return () => abortController.abort();
-    }, [config, condition, dependenciesString,dependencies]); // Clean dependency array with serialized dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, states); // Usa el array states como dependencias
 
     const handleCancelRequest = () => {
         if (controller) {
