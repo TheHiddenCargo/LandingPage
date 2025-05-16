@@ -26,7 +26,7 @@ export function useFetch(config, states = [], condition = true) {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
-                    "Ocp-Apim-Subscription-Key": "b553314cb92447a6bb13871a44b16726",
+                    "Ocp-Apim-Subscription-Key": process.env.REACT_APP_API_KEY,
                     ...headers // Permite sobreescribir o añadir headers
                 },
                 ...(body && method !== 'GET' && method !== 'HEAD'

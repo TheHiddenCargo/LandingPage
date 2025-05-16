@@ -178,7 +178,7 @@ const UserDialog = ({toCreate, email, onClose}) => {
                 }, 500);
             } else if(statusCreate >= 400) {
                 console.error("Error al crear usuario:", statusCreate, errorCreate);
-                setNewNickname(newNickname); // Mantener el valor actual
+                //setNewNickname(newNickname); // Mantener el valor actual
                 setCreateUser(false);
                 setIsSubmitting(false);
                 // No resetear el icono para permitir reintento sin empezar de cero
