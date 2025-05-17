@@ -5,6 +5,7 @@ import { loginRequest } from "../../authConfig.js";
 import { useNavigate } from "react-router-dom";
 import Modal, { ModalBody } from "../Modal.jsx";
 import logoImage from "../../assets/logo.png";
+import tutorialVideo from "../../assets/ComoJugar.mp4"; 
 import "./Landing.css";
 
 
@@ -53,7 +54,7 @@ const Landing = () => {
                 </div>
             </div>
             <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="¿Cómo Jugar?">
-                <ModalBody bodyTitle="Cómo Jugar" videoUrl="https://www.youtube.com/shorts/upeHfLQTMYU" />
+                <ModalBody bodyTitle="Cómo Jugar" videoSrc={tutorialVideo} />
             </Modal>
         </div>
     );
