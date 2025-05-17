@@ -176,25 +176,20 @@ bidding-area {
   transition: all 0.3s ease;
 }
 
-.mystery-box.raro {
-  background-color: #5d9cec;
-  box-shadow: 0 0 20px rgba(93, 156, 236, 0.5);
+.mystery-box.blanco {
+  background-color: #ffffff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
-.mystery-box.épico {
-  background-color: #bc5ed1;
-  box-shadow: 0 0 20px rgba(188, 94, 209, 0.5);
+
+.mystery-box.azul {
+  background-color: #4a90e2;
+  box-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
 }
 
-.mystery-box.legendario {
-  background-color: #ff9500;
-  box-shadow: 0 0 20px rgba(255, 149, 0, 0.5);
-}
-
-.mystery-box.opening {
-  font-family: 'Press Start 2P', cursive;
-  transform: scale(1.1);
-  animation: pulse 1s infinite;
+.mystery-box.dorado {
+  background-color: #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }
 
 @keyframes pulse {
@@ -486,20 +481,20 @@ bidding-area {
   transform: scale(1.05);
 }
 
-.container-image.normal {
-  background: linear-gradient(135deg, #5d6e95, #424f6f);
+.container-image.blanco {
+  background: linear-gradient(135deg, #ffffff, #e6e6e6);
 }
 
-.container-image.raro {
-  background: linear-gradient(135deg, #5a9ae6, #3b6fa9);
+.container-image.gris {
+  background: linear-gradient(135deg, #9b9b9b, #666666);
 }
 
-.container-image.épico {
-  background: linear-gradient(135deg, #a46ee6, #7749b9);
+.container-image.azul {
+  background: linear-gradient(135deg, #4a90e2, #2a6cb0);
 }
 
-.container-image.legendario {
-  background: linear-gradient(135deg, #f0c95f, #c7952a);
+.container-image.dorado {
+  background: linear-gradient(135deg, #ffd700, #c7a520);
 }
 
 .container-content {

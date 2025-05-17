@@ -35,19 +35,46 @@ Modal.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-const ModalBody = ({ bodyTitle, videoUrl }) => (
-  <iframe
-    title={bodyTitle}
-    src={videoUrl}
-    frameBorder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-    allowFullScreen
-  />
-);
+const ModalBody = ({ bodyTitle, videoUrl, videoSrc }) => {
+  // Renderiza un iframe para videos de YouTube o un elemento video para videos locales
+  if (videoUrl) {
+    return (
+      <iframe
+        title={bodyTitle}
+        src={videoUrl}
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        className="modal-video"
+      />
+    );
+  } else if (videoSrc) {
+    return (
+      <video 
+        className="modal-video" 
+        controls 
+        autoPlay={false}
+      >
+        <source src={videoSrc} type="video/mp4" />
+        Tu navegador no soporta el elemento de video.
+      </video>
+    );
+  }
+  
+  // Si no hay video, simplemente muestra el título del cuerpo
+  return <h2>{bodyTitle}</h2>;
+};
 
 ModalBody.propTypes = {
   bodyTitle: PropTypes.string.isRequired,
-  videoUrl: PropTypes.string.isRequired,
+  videoUrl: PropTypes.string,
+  videoSrc: PropTypes.string,
+};
+
+// Valor por defecto para evitar error si no se proporciona ninguno de los props
+ModalBody.defaultProps = {
+  videoUrl: '',
+  videoSrc: '',
 };
 
 export { ModalBody };
